@@ -21,17 +21,20 @@ export function SiteHeader({ active }: { active: NavKey }) {
         </a>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <a href="/about" aria-current={active === "about" ? "page" : undefined}>About</a>
-          <div className="nav-group">
-            <a href="/programs" aria-current={active === "programs" ? "page" : undefined}>Programs <span aria-hidden="true">⌄</span></a>
+          <details className="nav-group">
+            <summary aria-current={active === "about" || active === "team" ? "page" : undefined}>About <span aria-hidden="true">⌄</span></summary>
             <div className="nav-dropdown">
-              <a href="/programs">All Programs <span>Overview →</span></a>
+              <a href="/about">About Future of Music <span>Mission + story →</span></a>
+              <a href="/team">Our Team <span>Meet the people →</span></a>
+            </div>
+          </details>
+          <details className="nav-group">
+            <summary aria-current={active === "programs" ? "page" : undefined}>Programs <span aria-hidden="true">⌄</span></summary>
+            <div className="nav-dropdown">
               <a href="/programs/dj">Youth DJ Program <span>Music + technology →</span></a>
               <a href="/programs/mentorship">Mentorship Program <span>Growth + guidance →</span></a>
             </div>
-          </div>
-          <a href="/team" aria-current={active === "team" ? "page" : undefined}>Team</a>
-          <a href="/about#partners">Partners</a>
+          </details>
         </nav>
 
         <a className="button button-small" href="/donate" aria-current={active === "donate" ? "page" : undefined}>Donate <Arrow direction="up" /></a>
@@ -40,12 +43,12 @@ export function SiteHeader({ active }: { active: NavKey }) {
           <summary aria-label="Open navigation"><i></i><i></i><i></i></summary>
           <nav aria-label="Mobile navigation">
             <a href="/">Home</a>
-            <a href="/about">About</a>
-            <a href="/programs">Programs Overview</a>
+            <span className="mobile-menu-label">About</span>
+            <a href="/about">About Future of Music</a>
+            <a href="/team">Our Team</a>
+            <span className="mobile-menu-label">Programs</span>
             <a href="/programs/dj">Youth DJ Program</a>
             <a href="/programs/mentorship">Mentorship Program</a>
-            <a href="/team">Our Team</a>
-            <a href="/about#partners">Partners</a>
             <a href="/donate">Donate</a>
           </nav>
         </details>
@@ -62,8 +65,13 @@ export function SiteFooter() {
           <img src="/images/logo.png" alt="Future of Music" />
           <p>Music, mentorship, leadership, technology, and entrepreneurship for the next generation.</p>
           <div className="footer-pills"><span>Youth-led</span><span>St. Louis</span><span>Free programs</span></div>
+          <div className="footer-seal">
+            <a aria-label="Future of Music Candid profile" href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/?pkId=0c01c96a-78e8-466a-b047-d1c28bc25639" {...external}>
+              <img alt="Candid GuideStar transparency seal for Future of Music" src="https://widgets.guidestar.org/prod/v1/pdp/transparency-seal/16383723/svg" />
+            </a>
+          </div>
         </div>
-        <div><h3>Explore</h3><a href="/about">About us</a><a href="/programs">Programs</a><a href="/programs/dj">DJ Program</a><a href="/programs/mentorship">Mentorship</a><a href="/team">Team</a></div>
+        <div><h3>Explore</h3><a href="/about">About us</a><a href="/team">Our Team</a><a href="/programs/dj">DJ Program</a><a href="/programs/mentorship">Mentorship</a></div>
         <div><h3>Take action</h3><a href="https://forms.gle/Gg7yigzM9zTQSEdF6" {...external}>Apply ↗</a><a href="/donate">Donate</a><a href="mailto:info@fomusic.org">Contact us</a><a href="https://fomusic.org/portal-v2/" {...external}>Member portal ↗</a></div>
         <div><h3>Contact</h3><a href="mailto:info@fomusic.org">info@fomusic.org</a><a href="mailto:qwentin@fomusic.org">qwentin@fomusic.org</a><a href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/" {...external}>View Candid profile ↗</a></div>
       </div>
@@ -74,6 +82,26 @@ export function SiteFooter() {
 
 export function PageShell({ active, children }: { active: NavKey; children: ReactNode }) {
   return <><SiteHeader active={active} /><main id="main-content">{children}</main><SiteFooter /></>;
+}
+
+export function PhotoSlots({ program }: { program: string }) {
+  return (
+    <section className="photo-slots section-pad" aria-label={`${program} photo placeholders`}>
+      <div className="photo-slots-heading">
+        <p className="section-label">Program photos</p>
+        <h2>More moments<br /><em>coming soon.</em></h2>
+        <p>Reserved space for new photos from {program} workshops, events, and student experiences.</p>
+      </div>
+      <div className="photo-slot-grid">
+        {[1, 2, 3].map((number) => (
+          <figure className="photo-placeholder" key={number}>
+            <span aria-hidden="true">?</span>
+            <figcaption>Photo space 0{number}</figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export { external };

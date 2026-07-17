@@ -9,7 +9,7 @@ export default function Home() {
           <h1>Young creators.<br /><em>Real futures.</em></h1>
           <p className="hero-lede">Free programs in music, mentorship, leadership, technology, and entrepreneurship—built to turn creativity into confidence and a path forward.</p>
           <div className="button-row">
-            <a className="button" href="/programs">Explore programs <Arrow /></a>
+            <a className="button" href="#programs">Explore programs <Arrow direction="down" /></a>
             <a className="text-link" href="/about">Meet Future of Music <Arrow /></a>
           </div>
         </div>
@@ -36,10 +36,10 @@ export default function Home() {
         <figure><img src="/images/two-boys-dj.webp" alt="Two Future of Music students learning to DJ" /></figure>
       </section>
 
-      <section className="home-programs section-pad">
+      <section className="home-programs section-pad" id="programs">
         <div className="compact-heading">
           <div><p className="section-label light">Choose a pathway</p><h2>What will you<br /><em>build next?</em></h2></div>
-          <a className="text-link light-link" href="/programs">View all programs <Arrow /></a>
+          <p className="program-choice-note">Choose the program that fits your next step.</p>
         </div>
         <div className="home-program-grid">
           <article className="home-program-card dj-card">

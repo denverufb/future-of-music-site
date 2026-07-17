@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Arrow, external, PageShell } from "../components/SiteChrome";
 
-export const metadata: Metadata = { title: "About | Future of Music", description: "Meet the youth-led mission, community, and partners behind Future of Music." };
+export const metadata: Metadata = { title: "About | Future of Music", description: "Meet the youth-led mission and community behind Future of Music." };
 
 export default function AboutPage() {
   return (
@@ -38,19 +38,6 @@ export default function AboutPage() {
         <figure><img src="/images/two-boys-dj.webp" alt="Two youth DJ students" /></figure>
         <div><span>“</span><p>Built with young people,<br />not just for them.</p></div>
         <figure><img src="/images/headphone-on.webp" alt="Student wearing headphones during a music session" /></figure>
-      </section>
-
-      <section className="partner-section section-pad" id="partners">
-        <div className="section-number">02 / OUR COMMUNITY</div>
-        <div className="partner-layout">
-          <div><h2>It takes a whole<br /><em>community.</em></h2><p>Schools, nonprofits, businesses, mentors, and donors make free programs possible. Every partner adds another door a student can walk through.</p><a className="button" href="mailto:info@fomusic.org?subject=Future%20of%20Music%20Partnership">Become a partner <Arrow /></a></div>
-          <div className="partner-wall" aria-label="Future of Music partners">
-            <div className="partner-logo blue-logo"><span>JSD</span><strong>Jennings<br />School District</strong></div>
-            <div className="partner-logo yellow-logo"><span>CL</span><strong>Creator<br />Launch</strong></div>
-            <div className="partner-logo coral-logo"><span>NP</span><strong>Next<br />Prep</strong></div>
-            <div className="partner-logo ink-logo"><span>+</span><strong>Community<br />Leaders</strong></div>
-          </div>
-        </div>
       </section>
 
       <section className="story-links section-pad">

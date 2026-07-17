@@ -16,7 +16,6 @@ async function render(path = "/") {
 const routes = [
   ["/", /Young creators\./i],
   ["/about", /Built with youth\./i],
-  ["/programs", /Find your/i],
   ["/programs/dj", /Learn to DJ\./i],
   ["/programs/mentorship", /Mentorship that feels/i],
   ["/team", /Youth-led\./i],
@@ -36,9 +35,17 @@ for (const [path, pageText] of routes) {
 
 test("navigation links directly to every main destination", async () => {
   const html = await (await render()).text();
-  for (const href of ["/about", "/programs", "/programs/dj", "/programs/mentorship", "/team", "/donate"]) {
+  for (const href of ["/about", "/programs/dj", "/programs/mentorship", "/team", "/donate"]) {
     assert.match(html, new RegExp(`href=\\"${href.replaceAll("/", "\\/")}\\"`));
   }
+  assert.doesNotMatch(html, /href=\"\/programs\"/);
+  assert.doesNotMatch(html, /href=\"\/about#partners\"/);
+});
+
+test("legacy programs overview redirects to the DJ program", async () => {
+  const response = await render("/programs");
+  assert.equal(response.status, 307);
+  assert.equal(response.headers.get("location"), "http://localhost/programs/dj");
 });
 
 test("program and donation actions remain available", async () => {
@@ -50,8 +57,18 @@ test("program and donation actions remain available", async () => {
   const dj = await (await render("/programs/dj")).text();
   assert.match(dj, /Bring this program/i);
   assert.match(dj, /Become a DJ Program partner/i);
+  assert.match(dj, /Photo space 0/i);
+  assert.match(dj, />01<\/span><h3>DJ fundamentals/i);
+
+  assert.match(mentorship, /Mentorship grows/i);
+  assert.match(mentorship, /Photo space 0/i);
 
   const donate = await (await render("/donate")).text();
   assert.match(donate, /zeffy\.com\/en-US\/peer-to-peer\/free-youth-dj-program/);
   assert.match(donate, /<iframe/i);
+});
+
+test("footer includes the embedded Candid transparency seal", async () => {
+  const html = await (await render()).text();
+  assert.match(html, /widgets\.guidestar\.org\/prod\/v1\/pdp\/transparency-seal\/16383723\/svg/);
 });
