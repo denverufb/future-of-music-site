@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+  --font-display: "Trebuchet MS", "Avenir Next", Arial, sans-serif;
+  --font-body: "Avenir Next", "Segoe UI", Arial, sans-serif;
   --ink: #111118;
   --paper: #f5f0e5;
   --paper-deep: #e8dfcf;
@@ -224,6 +226,8 @@ p { margin-top: 0; }
 .program-theme-dj .dj-page-hero { background: #0a2461; }
 .program-theme-dj .program-page-hero > figure { border-left: 2px solid #fff; }
 .program-theme-dj .program-overview { background: #06163d; }
+.program-theme-dj .program-overview { gap: clamp(28px, 4vw, 52px); padding-block: clamp(42px, 5vw, 66px); }
+.program-theme-dj .overview-statement h2 { font-size: clamp(2.8rem, 4.8vw, 5.2rem); }
 .program-theme-dj .overview-copy p, .program-theme-dj .program-overview p { color: #dce5ff; }
 .program-theme-dj .program-overview .large-copy { color: var(--yellow) !important; }
 .program-theme-dj .curriculum { border-block: 2px solid #5478ee; background: #030a20; }
@@ -243,7 +247,8 @@ p { margin-top: 0; }
 .program-theme-dj .program-partners > div:first-child > p:not(.section-label) { color: #dce5ff; }
 .program-theme-dj .partner-pills span { color: var(--ink); }
 .program-theme-dj .partner-pills span:nth-child(even) { background: var(--coral); }
-.program-theme-dj .dj-final { background: #113b9f; }
+.program-theme-dj .dj-final { gap: clamp(24px, 4vw, 44px); padding-block: clamp(42px, 5vw, 62px); background: #113b9f; }
+.program-theme-dj .dj-final > div:last-child p { margin-bottom: 26px; }
 
 .mentor-promise-strip { display: grid; grid-template-columns: repeat(4, 1fr); border-block: var(--line); background: var(--ink); }
 .mentor-promise-strip span { display: flex; align-items: center; gap: 12px; padding: 22px clamp(16px, 3vw, 34px); border-right: var(--line); background: var(--yellow); font-family: var(--font-display); font-weight: 900; }
@@ -303,6 +308,9 @@ p { margin-top: 0; }
   .mentor-promise-strip span:nth-child(2) { border-right: 0; }
   .mentor-promise-strip span:nth-child(-n+2) { border-bottom: var(--line); }
   .program-theme-dj .program-page-hero > figure { border-left: 0; border-top: 2px solid white; }
+  .program-theme-dj .program-overview { gap: 28px; padding-block: 40px; }
+  .program-theme-dj .dj-final { gap: 22px; padding-block: 40px; }
+  .footer-brand > img { align-self: center; }
   .director-section figure { min-height: 430px; }.director-section > div { min-height: 400px; }
   .footer-top { grid-template-columns: 1fr 1fr; }.footer-brand { grid-column: 1 / 3; }
 }
