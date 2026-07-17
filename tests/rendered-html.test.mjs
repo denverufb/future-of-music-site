@@ -15,6 +15,7 @@ const routes = [
   ["/about", /Built with youth\./i],
   ["/programs/dj", /Learn to DJ\./i],
   ["/programs/mentorship", /Mentorship that feels/i],
+  ["/programs/artist-development", /Artist Development/i],
   ["/team", /Youth-led/i],
   ["/donate", /Your gift puts the tools/i],
 ];
@@ -51,6 +52,14 @@ test("program and donation actions remain available", async () => {
   const donate = await render("/donate");
   assert.match(donate, /zeffy\.com\/en-US\/peer-to-peer\/free-youth-dj-program/);
   assert.match(donate, /<iframe/i);
+});
+
+test("artist development draft is self-paced and contains no video experience", async () => {
+  const academy = await render("/programs/artist-development");
+  assert.match(academy, /Find your sound\. Build your brand\. Prepare for the industry\./i);
+  assert.match(academy, /Artist Development Portfolio/i);
+  assert.match(academy, /100%.*ONLINE.*SELF-PACED/i);
+  assert.doesNotMatch(academy, /\bvideo(s)?\b/i);
 });
 
 test("footer includes the embedded Candid transparency seal", async () => {
