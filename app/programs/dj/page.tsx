@@ -16,7 +16,7 @@ export default function DjProgramPage() {
     <PageShell active="programs" mainClassName="program-theme program-theme-dj">
       <section className="program-page-hero dj-page-hero">
         <div className="program-hero-copy"><p className="program-chip">FREE • AGES 8–18</p><h1>Learn to DJ.<br /><em>Create with confidence.</em><br />Lead with purpose.</h1><p>Hands-on DJ training that combines music, technology, entrepreneurship, and leadership in one unforgettable learning experience.</p><div className="button-row"><a className="button button-yellow" href="mailto:aereon@fomusic.org?subject=Bring%20the%20DJ%20Program">Bring this program <Arrow /></a><a className="text-link light-link" href="#curriculum">See what students learn <Arrow direction="down" /></a></div></div>
-        <figure><img src="/images/group-work.webp" alt="Students participating in the Future of Music Youth DJ Program" /><div>50+<span>YOUTH SERVED</span></div></figure>
+        <figure><img src="/gallery/dj/03-controller-closeup.png" alt="DJ controller ready for a Future of Music session" /><div>50+<span>YOUTH SERVED</span></div></figure>
       </section>
 
       <div className="dj-ticker" aria-label="Mix, create, lead, and perform">
@@ -42,7 +42,7 @@ export default function DjProgramPage() {
         </div>
       </section>
 
-      <section className="program-gallery"><figure><img src="/images/headphone-on.webp" alt="Student practicing with DJ headphones" /></figure><div><span>TURN</span><strong>IT</strong><em>UP.</em></div><figure><img src="/images/two-boys-dj.webp" alt="Two DJ Program students learning together" /></figure></section>
+      <section className="program-gallery"><figure><img src="/gallery/dj/04-students-mixing.png" alt="Students practicing DJ skills together" /></figure><div><span>TURN</span><strong>IT</strong><em>UP.</em></div><figure><img src="/gallery/dj/05-student-laptop.png" alt="Student learning DJ software and music selection" /></figure></section>
 
       <ProgramGallery title="DJ moments" images={djGalleryImages} />
 

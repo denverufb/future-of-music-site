@@ -14,7 +14,7 @@ export default function Home() {
           </div>
         </div>
         <div className="hero-art">
-          <figure className="hero-photo"><img src="/images/hero-collage.webp" alt="Young people learning together around a DJ controller" /></figure>
+          <figure className="hero-photo"><img src="/gallery/dj/01-program-group.png" alt="Future of Music students gathered around DJ equipment" /></figure>
           <div className="hero-sticker sticker-yellow">CREATE<br />LOUDLY.</div>
           <div className="hero-sticker sticker-white">ST. LOUIS</div>
         </div>
@@ -33,7 +33,7 @@ export default function Home() {
           <p>Future of Music gives young people the equipment, mentors, opportunities, and room to become more than they can currently imagine.</p>
           <a className="button" href="/about">Our story <Arrow /></a>
         </div>
-        <figure><img src="/images/two-boys-dj.webp" alt="Two Future of Music students learning to DJ" /></figure>
+        <figure><img src="/gallery/dj/02-workshop.png" alt="Future of Music students learning at a DJ workshop" /></figure>
       </section>
 
       <section className="home-programs section-pad" id="programs">

@@ -42,7 +42,10 @@ test("program and donation actions remain available", async () => {
 
   const dj = await render("/programs/dj");
   assert.match(dj, /Become a DJ Program partner/i);
-  assert.equal((dj.match(/data-gallery-slot="blank\.png"/g) ?? []).length, 6);
+  assert.equal((dj.match(/data-gallery-slot="blank\.png"/g) ?? []).length, 0);
+  for (const filename of ["01-program-group.png", "02-workshop.png", "03-controller-closeup.png", "04-students-mixing.png", "05-student-laptop.png"]) {
+    assert.match(dj, new RegExp(`/gallery/dj/${filename.replace(".", "\\.")}`));
+  }
   assert.equal((mentorship.match(/data-gallery-slot="blank\.png"/g) ?? []).length, 6);
 
   const donate = await render("/donate");
