@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Arrow, external, PageShell, PhotoSlots } from "../../components/SiteChrome";
+import { Arrow, external, PageShell, ProgramGallery } from "../../components/SiteChrome";
+import { mentorshipGalleryImages } from "../../gallery";
 
 export const metadata: Metadata = { title: "Mentorship Program | Future of Music", description: "A three-month peer mentorship program for students in grades 5–12." };
 
@@ -33,7 +34,7 @@ export default function MentorshipPage() {
         <div className="experience-grid"><article><span>01</span><h3>Mentee Day events</h3><p>Fun activities that build connection, confidence, and belonging.</p></article><article><span>02</span><h3>Community service</h3><p>Trips that help students practice leadership and understand local impact.</p></article><article><span>03</span><h3>Networking</h3><p>Meet community leaders, young business owners, mentors, and ambitious peers.</p></article></div>
       </section>
 
-      <PhotoSlots program="the Mentorship Program" />
+      <ProgramGallery title="Mentorship Program" images={mentorshipGalleryImages} />
 
       <section className="program-partners mentor-partners section-pad">
         <div><p className="section-label">Program community</p><h2>Mentorship grows<br />through <em>partnership.</em></h2><p>Schools, families, college-and-career partners, youth business owners, and community mentors help every student build a stronger support system.</p></div>

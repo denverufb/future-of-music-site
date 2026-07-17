@@ -73,7 +73,7 @@ export function SiteFooter() {
         </div>
         <div><h3>Explore</h3><a href="/about">About us</a><a href="/team">Our Team</a><a href="/programs/dj">DJ Program</a><a href="/programs/mentorship">Mentorship</a></div>
         <div><h3>Take action</h3><a href="https://forms.gle/Gg7yigzM9zTQSEdF6" {...external}>Apply ↗</a><a href="/donate">Donate</a><a href="mailto:info@fomusic.org">Contact us</a><a href="https://fomusic.org/portal-v2/" {...external}>Member portal ↗</a></div>
-        <div><h3>Contact</h3><a href="mailto:info@fomusic.org">info@fomusic.org</a><a href="mailto:qwentin@fomusic.org">qwentin@fomusic.org</a><a href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/" {...external}>View Candid profile ↗</a></div>
+        <div><h3>Contact</h3><a href="mailto:info@fomusic.org">info@fomusic.org</a><a href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/" {...external}>View Candid profile ↗</a></div>
       </div>
       <div className="footer-bottom"><p>Nationally recognized 501(c)(3) nonprofit • EIN 33-4753021</p><p>© 2026 Future of Music</p></div>
     </footer>
@@ -84,19 +84,21 @@ export function PageShell({ active, children }: { active: NavKey; children: Reac
   return <><SiteHeader active={active} /><main id="main-content">{children}</main><SiteFooter /></>;
 }
 
-export function PhotoSlots({ program }: { program: string }) {
+type GalleryImage = { src: string; alt: string };
+
+export function ProgramGallery({ title, images }: { title: string; images: GalleryImage[] }) {
   return (
-    <section className="photo-slots section-pad" aria-label={`${program} photo placeholders`}>
-      <div className="photo-slots-heading">
-        <p className="section-label">Program photos</p>
-        <h2>More moments<br /><em>coming soon.</em></h2>
-        <p>Reserved space for new photos from {program} workshops, events, and student experiences.</p>
+    <section className="asset-gallery section-pad" aria-label={`${title} photo gallery`}>
+      <div className="asset-gallery-heading">
+        <p className="section-label">Photo gallery</p>
+        <h2>{title}</h2>
       </div>
-      <div className="photo-slot-grid">
-        {[1, 2, 3].map((number) => (
-          <figure className="photo-placeholder" key={number}>
-            <span aria-hidden="true">?</span>
-            <figcaption>Photo space 0{number}</figcaption>
+      <div className="asset-gallery-grid">
+        {images.map((image, index) => image.src.endsWith("/blank.png") ? (
+          <figure className="asset-gallery-item is-blank" data-gallery-slot="blank.png" key={`${image.src}-${index}`} aria-label="Empty gallery space" />
+        ) : (
+          <figure className="asset-gallery-item" key={`${image.src}-${index}`}>
+            <img src={image.src} alt={image.alt} />
           </figure>
         ))}
       </div>

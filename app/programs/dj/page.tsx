@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Arrow, PageShell, PhotoSlots } from "../../components/SiteChrome";
+import { Arrow, PageShell, ProgramGallery } from "../../components/SiteChrome";
+import { djGalleryImages } from "../../gallery";
 
 export const metadata: Metadata = { title: "Youth DJ Program | Future of Music", description: "Free hands-on DJ education for youth ages 8–18 in St. Louis." };
 
@@ -39,7 +40,7 @@ export default function DjProgramPage() {
 
       <section className="program-gallery"><figure><img src="/images/headphone-on.webp" alt="Student practicing with DJ headphones" /></figure><div><span>TURN</span><strong>IT</strong><em>UP.</em></div><figure><img src="/images/two-boys-dj.webp" alt="Two DJ Program students learning together" /></figure></section>
 
-      <PhotoSlots program="the Youth DJ Program" />
+      <ProgramGallery title="Youth DJ Program" images={djGalleryImages} />
 
       <section className="program-partners section-pad">
         <div><p className="section-label">Program community</p><h2>Made possible<br />with <em>partners.</em></h2><p>Future of Music works with schools, youth organizations, community leaders, and businesses to place equipment and opportunity where students already are.</p></div>
