@@ -57,12 +57,16 @@ test("program and donation actions remain available", async () => {
   const dj = await (await render("/programs/dj")).text();
   assert.match(dj, /Bring this program/i);
   assert.match(dj, /Become a DJ Program partner/i);
-  assert.match(dj, /Youth DJ Program photo gallery/i);
+  assert.match(dj, /program-theme program-theme-dj/i);
+  assert.match(dj, /MIX<\/span>.*CREATE<\/span>.*LEAD<\/span>.*PERFORM<\/span>/i);
+  assert.match(dj, /DJ moments photo gallery/i);
   assert.match(dj, /data-gallery-slot="blank\.png"/i);
   assert.match(dj, />01<\/span><h3>DJ fundamentals/i);
 
   assert.match(mentorship, /Mentorship grows/i);
-  assert.match(mentorship, /Mentorship Program photo gallery/i);
+  assert.match(mentorship, /program-theme program-theme-mentor/i);
+  assert.match(mentorship, /Be seen.*Get support.*Build a plan.*Move forward/i);
+  assert.match(mentorship, /Mentorship moments photo gallery/i);
   assert.match(mentorship, /data-gallery-slot="blank\.png"/i);
 
   const donate = await (await render("/donate")).text();

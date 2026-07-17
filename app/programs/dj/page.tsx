@@ -13,11 +13,15 @@ const lessons = [
 
 export default function DjProgramPage() {
   return (
-    <PageShell active="programs">
+    <PageShell active="programs" mainClassName="program-theme program-theme-dj">
       <section className="program-page-hero dj-page-hero">
         <div className="program-hero-copy"><p className="program-chip">FREE • AGES 8–18</p><h1>Learn to DJ.<br /><em>Create with confidence.</em><br />Lead with purpose.</h1><p>Hands-on DJ training that combines music, technology, entrepreneurship, and leadership in one unforgettable learning experience.</p><div className="button-row"><a className="button button-yellow" href="mailto:aereon@fomusic.org?subject=Bring%20the%20DJ%20Program">Bring this program <Arrow /></a><a className="text-link light-link" href="#curriculum">See what students learn <Arrow direction="down" /></a></div></div>
         <figure><img src="/images/group-work.webp" alt="Students participating in the Future of Music Youth DJ Program" /><div>50+<span>YOUTH SERVED</span></div></figure>
       </section>
+
+      <div className="dj-ticker" aria-label="Mix, create, lead, and perform">
+        <span>MIX</span><i></i><span>CREATE</span><i></i><span>LEAD</span><i></i><span>PERFORM</span>
+      </div>
 
       <section className="program-overview section-pad">
         <div className="overview-statement"><p className="section-label">Program overview</p><h2>Where music, technology, business, and leadership <em>meet.</em></h2></div>
@@ -40,7 +44,7 @@ export default function DjProgramPage() {
 
       <section className="program-gallery"><figure><img src="/images/headphone-on.webp" alt="Student practicing with DJ headphones" /></figure><div><span>TURN</span><strong>IT</strong><em>UP.</em></div><figure><img src="/images/two-boys-dj.webp" alt="Two DJ Program students learning together" /></figure></section>
 
-      <ProgramGallery title="Youth DJ Program" images={djGalleryImages} />
+      <ProgramGallery title="DJ moments" images={djGalleryImages} />
 
       <section className="program-partners section-pad">
         <div><p className="section-label">Program community</p><h2>Made possible<br />with <em>partners.</em></h2><p>Future of Music works with schools, youth organizations, community leaders, and businesses to place equipment and opportunity where students already are.</p></div>

@@ -80,8 +80,8 @@ export function SiteFooter() {
   );
 }
 
-export function PageShell({ active, children }: { active: NavKey; children: ReactNode }) {
-  return <><SiteHeader active={active} /><main id="main-content">{children}</main><SiteFooter /></>;
+export function PageShell({ active, children, mainClassName }: { active: NavKey; children: ReactNode; mainClassName?: string }) {
+  return <><SiteHeader active={active} /><main id="main-content" className={mainClassName}>{children}</main><SiteFooter /></>;
 }
 
 type GalleryImage = { src: string; alt: string };

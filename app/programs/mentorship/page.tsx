@@ -13,11 +13,18 @@ const pillars = [
 
 export default function MentorshipPage() {
   return (
-    <PageShell active="programs">
+    <PageShell active="programs" mainClassName="program-theme program-theme-mentor">
       <section className="program-page-hero mentor-page-hero">
         <div className="program-hero-copy"><p className="program-chip">FALL COHORT • GRADES 5–12</p><h1>Mentorship that feels<br /><em>real and useful.</em></h1><p>A one-of-a-kind three-month peer mentorship program guided by student business owners, community leaders, and college-and-career readiness partners.</p><div className="stipend"><strong>$50</strong><span>STIPEND FOR EVERY PARTICIPATING MENTEE</span></div><div className="button-row"><a className="button" href="https://forms.gle/Gg7yigzM9zTQSEdF6" {...external}>Apply for mentorship <Arrow direction="up" /></a><a className="text-link" href="#portal">Member portal <Arrow direction="down" /></a></div></div>
         <div className="mentor-main-poster" aria-label="Mentorship program dates"><p>OCTOBER 01 — DECEMBER 31</p><strong>3<br />MONTHS</strong><div><span>MENTOR</span><i></i><span>MENTEE</span><i></i><span>FUTURE</span></div></div>
       </section>
+
+      <div className="mentor-promise-strip" aria-label="Mentorship program commitments">
+        <span><strong>01</strong> Be seen</span>
+        <span><strong>02</strong> Get support</span>
+        <span><strong>03</strong> Build a plan</span>
+        <span><strong>04</strong> Move forward</span>
+      </div>
 
       <section className="mentor-overview section-pad">
         <article className="cohort-card"><p className="section-label">Who can join</p><h2>Students ready to<br /><em>grow.</em></h2><p>The cohort is designed for students who want support with school, confidence, leadership, business ideas, career exploration, and planning what comes next.</p><div className="cohort-facts"><div><strong>Oct 1</strong><span>Start date</span></div><div><strong>Dec 31</strong><span>End date</span></div><div><strong>$50</strong><span>Stipend</span></div></div></article>
@@ -34,7 +41,7 @@ export default function MentorshipPage() {
         <div className="experience-grid"><article><span>01</span><h3>Mentee Day events</h3><p>Fun activities that build connection, confidence, and belonging.</p></article><article><span>02</span><h3>Community service</h3><p>Trips that help students practice leadership and understand local impact.</p></article><article><span>03</span><h3>Networking</h3><p>Meet community leaders, young business owners, mentors, and ambitious peers.</p></article></div>
       </section>
 
-      <ProgramGallery title="Mentorship Program" images={mentorshipGalleryImages} />
+      <ProgramGallery title="Mentorship moments" images={mentorshipGalleryImages} />
 
       <section className="program-partners mentor-partners section-pad">
         <div><p className="section-label">Program community</p><h2>Mentorship grows<br />through <em>partnership.</em></h2><p>Schools, families, college-and-career partners, youth business owners, and community mentors help every student build a stronger support system.</p></div>
