@@ -7,16 +7,15 @@ export const metadata: Metadata = {
 };
 
 const modules = [
-  ["01", "Your artist journey", "Set goals, understand artist development, and assess where you are starting."],
-  ["02", "Artist identity", "Define your purpose, message, values, personality, strengths, and audience."],
-  ["03", "Find your sound", "Explore genre, influences, delivery, production choices, themes, and emotion."],
-  ["04", "Songwriting practice", "Develop structure, hooks, verses, storytelling, originality, and revision habits."],
-  ["05", "Studio + stage readiness", "Prepare to rehearse, record, perform, receive feedback, and work with producers."],
-  ["06", "Build your brand", "Shape your name, story, colors, photos, fashion direction, and visual consistency."],
-  ["07", "PR + media training", "Write a strong artist bio, introduce yourself, and answer interview questions."],
-  ["08", "Industry fundamentals", "Understand labels, A&R, management, publishing, royalties, masters, and contracts."],
-  ["09", "Marketing + releases", "Plan content, promotion, fan engagement, safe social media use, and your next release."],
-  ["10", "Career planning", "Build professional habits, avoid scams, manage a budget, network, and set real goals."],
+  ["00", "Start here", "Set expectations, protect your privacy, and complete a starting assessment."],
+  ["01", "Artist identity", "Define your purpose, message, values, audience experience, and 90-day goal."],
+  ["02", "Find your sound", "Explore delivery, rhythm, production, themes, influences, and experimentation."],
+  ["03", "Creative practice", "Develop songwriting, revision, collaboration, studio, and performance habits."],
+  ["04", "Build your brand", "Shape an authentic visual system, photo direction, brand voice, and content pillars."],
+  ["05", "PR + media", "Write a strong artist bio, prepare key messages, and practice interview responses."],
+  ["06", "Industry + rights", "Understand teams, labels, distribution, music rights, contracts, and warning signs."],
+  ["07", "Release planning", "Build a 30-day marketing plan, professional habits, budget, and next steps."],
+  ["08", "Portfolio + certificate", "Bring the work together, pass the final assessment, and document your growth."],
 ];
 
 const portfolio = [
@@ -39,12 +38,12 @@ export default function ArtistDevelopmentPage() {
     <PageShell active="programs" mainClassName="artist-academy">
       <section className="artist-hero">
         <div className="artist-hero-copy">
-          <p className="artist-status">COMING SOON • FREE • AGES 10–18</p>
+          <p className="artist-status">OPEN BETA • FREE • AGES 10–18</p>
           <p className="artist-kicker">Future of Music presents</p>
           <h1>Artist<br />Development<br /><em>Academy.</em></h1>
           <p>Find your sound. Build your brand. Prepare for the industry.</p>
           <div className="button-row">
-            <a className="button artist-button" href="mailto:info@fomusic.org?subject=Artist%20Development%20Academy%20Updates">Get launch updates <Arrow /></a>
+            <a className="button artist-button" href="/programs/artist-development/course">Start the open course <Arrow /></a>
             <a className="artist-text-link" href="#curriculum">Explore the curriculum <Arrow direction="down" /></a>
           </div>
         </div>
@@ -68,8 +67,8 @@ export default function ArtistDevelopmentPage() {
           <p className="large-copy">A free online academy for young singers, rappers, songwriters, producers, and performers.</p>
           <p>Students work through readings, real-world examples, interactive activities, writing exercises, quizzes, and creative projects at their own pace. Every module adds useful work to a personal Artist Development Portfolio.</p>
           <div className="artist-facts">
-            <article><strong>10–12</strong><span>estimated hours</span></article>
-            <article><strong>10</strong><span>guided modules</span></article>
+            <article><strong>4.5</strong><span>estimated hours</span></article>
+            <article><strong>27</strong><span>narrated lessons</span></article>
             <article><strong>Any</strong><span>phone, tablet, or computer</span></article>
             <article><strong>Free</strong><span>for participating youth</span></article>
           </div>
@@ -77,7 +76,7 @@ export default function ArtistDevelopmentPage() {
       </section>
 
       <section className="artist-curriculum section-pad" id="curriculum">
-        <div className="artist-section-heading"><p className="section-label light">The curriculum</p><h2>Ten modules.<br /><em>One complete artist toolkit.</em></h2></div>
+        <div className="artist-section-heading"><p className="section-label light">The curriculum</p><h2>One complete<br /><em>artist toolkit.</em></h2></div>
         <div className="artist-module-list">
           {modules.map(([number, title, copy]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p></article>)}
         </div>
@@ -111,7 +110,7 @@ export default function ArtistDevelopmentPage() {
 
       <section className="artist-final">
         <div><p>READY TO DEVELOP YOUR ARTISTRY?</p><h2>Find your sound.<br />Build your future.</h2></div>
-        <a className="button artist-button" href="mailto:info@fomusic.org?subject=Artist%20Development%20Academy%20Updates">Join the interest list <Arrow /></a>
+        <a className="button artist-button" href="/programs/artist-development/course">Start the open course <Arrow /></a>
       </section>
     </PageShell>
   );

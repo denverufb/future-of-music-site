@@ -16,6 +16,7 @@ const routes = [
   ["/programs/dj", /Learn to DJ\./i],
   ["/programs/mentorship", /Mentorship that feels/i],
   ["/programs/artist-development", /Artist Development/i],
+  ["/programs/artist-development/course", /OPEN BETA/i],
   ["/team", /Youth-led/i],
   ["/donate", /Your gift puts the tools/i],
 ];
@@ -60,6 +61,22 @@ test("artist development draft is self-paced and contains no video experience", 
   assert.match(academy, /Artist Development Portfolio/i);
   assert.match(academy, /100%.*ONLINE.*SELF-PACED/i);
   assert.doesNotMatch(academy, /\bvideo(s)?\b/i);
+});
+
+test("artist development course includes the complete narration-first beta", async () => {
+  const course = await render("/programs/artist-development/course");
+  const appSource = await readFile(new URL("../app/programs/artist-development/course/CourseApp.tsx", import.meta.url), "utf8");
+  const dataSource = await readFile(new URL("../app/programs/artist-development/course/course-data.ts", import.meta.url), "utf8");
+
+  assert.match(course, /Artist Development Academy/i);
+  assert.match(course, /Your work saves automatically on this device/i);
+  assert.match(course, /Artist Workbook/i);
+  assert.match(appSource, /speechSynthesis/);
+  assert.match(appSource, /Download my workbook/i);
+  assert.match(appSource, /Print or save certificate/i);
+  assert.equal((dataSource.match(/id: "[0-9]-[0-9]+"/g) ?? []).length, 27);
+  assert.equal((dataSource.match(/\bq\(/g) ?? []).length, 54);
+  assert.doesNotMatch(`${course}\n${appSource}\n${dataSource}`, /\bvideo(s)?\b|voice\.ai|translate\.google/i);
 });
 
 test("footer includes the embedded Candid transparency seal", async () => {
