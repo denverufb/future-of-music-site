@@ -18,7 +18,7 @@ const routes = [
   ["/programs/artist-development", /Artist Development/i],
   ["/programs/artist-development/course", /OPEN BETA/i],
   ["/team", /Youth-led/i],
-  ["/donate", /Your gift puts the tools/i],
+  ["/donate", /Give young creators/i],
 ];
 
 for (const [path, pageText] of routes) {
@@ -51,8 +51,11 @@ test("program and donation actions remain available", async () => {
   assert.equal((mentorship.match(/data-gallery-slot="blank\.png"/g) ?? []).length, 6);
 
   const donate = await render("/donate");
-  assert.match(donate, /zeffy\.com\/en-US\/peer-to-peer\/free-youth-dj-program/);
+  assert.match(donate, /data-form-url="\/embed\/donation-form\/future-of-music"/);
+  assert.match(donate, /zeffy\.com\/embed\/donation-form\/future-of-music/);
+  assert.match(donate, /About our organization/i);
   assert.match(donate, /<iframe/i);
+  assert.doesNotMatch(donate, /\$25|\$100|\$500|suggested donation amount/i);
 });
 
 test("artist development draft is self-paced and contains no video experience", async () => {
