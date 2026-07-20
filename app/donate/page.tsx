@@ -22,7 +22,7 @@ export default function DonatePage() {
           <p className="donate-powered">Secure giving powered by Zeffy • Future of Music is a 501(c)(3) nonprofit</p>
         </div>
         <figure className="donate-new-photo">
-          <img src="/gallery/dj/01-program-group.png" alt="Future of Music students and instructors gathered around DJ equipment" />
+          <img src="/gallery/dj/01-program-group.jpg" alt="Future of Music students and instructors gathered around DJ equipment" />
           <figcaption><strong>YOUTH-LED</strong><span>ST. LOUIS</span><span>FREE PROGRAMS</span></figcaption>
         </figure>
       </section>
@@ -46,7 +46,7 @@ export default function DonatePage() {
       </section>
 
       <section className="donate-photo-break">
-        <figure><img src="/gallery/dj/02-workshop.png" alt="Young people learning to use DJ equipment during a Future of Music workshop" /></figure>
+        <figure><img src="/gallery/dj/02-workshop.jpg" alt="Young people learning to use DJ equipment during a Future of Music workshop" /></figure>
         <div><p>When young people have access to tools, trusted guidance, and room to create, they build more than music.</p><strong>They build confidence, community, and a future they can shape.</strong></div>
       </section>
 

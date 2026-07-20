@@ -48,7 +48,7 @@ export default function ArtistDevelopmentPage() {
           </div>
         </div>
         <figure className="artist-hero-photo">
-          <img src="/gallery/dj/05-student-laptop.png" alt="Young artist developing music skills with a laptop and DJ controller" />
+          <img src="/gallery/dj/05-student-laptop.jpg" alt="Young artist developing music skills with a laptop and DJ controller" />
           <figcaption><span>100%</span> ONLINE<br />SELF-PACED</figcaption>
         </figure>
       </section>

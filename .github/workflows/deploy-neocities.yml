@@ -28,13 +28,23 @@ jobs:
         run: |
           cd out
           upload_args=()
+          upload_batch() {
+            if (( ${#upload_args[@]} == 0 )); then
+              return
+            fi
+            curl --fail --silent --show-error \
+              --retry 3 \
+              --retry-all-errors \
+              --retry-delay 5 \
+              -H "Authorization: Bearer ${NEOCITIES_API_KEY}" \
+              "${upload_args[@]}" \
+              https://neocities.org/api/upload
+            upload_args=()
+          }
           while IFS= read -r -d '' file; do
             upload_args+=( -F "${file#./}=@${file#./}" )
+            if (( ${#upload_args[@]} >= 25 )); then
+              upload_batch
+            fi
           done < <(find . -type f -print0)
-          curl --fail --silent --show-error \
-            --retry 3 \
-            --retry-all-errors \
-            --retry-delay 5 \
-            -H "Authorization: Bearer ${NEOCITIES_API_KEY}" \
-            "${upload_args[@]}" \
-            https://neocities.org/api/upload
+          upload_batch
