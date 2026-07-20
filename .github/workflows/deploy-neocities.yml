@@ -32,6 +32,9 @@ jobs:
             upload_args+=( -F "${file#./}=@${file#./}" )
           done < <(find . -type f -print0)
           curl --fail --silent --show-error \
+            --retry 3 \
+            --retry-all-errors \
+            --retry-delay 5 \
             -H "Authorization: Bearer ${NEOCITIES_API_KEY}" \
             "${upload_args[@]}" \
             https://neocities.org/api/upload
