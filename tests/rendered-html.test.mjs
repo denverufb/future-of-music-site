@@ -38,6 +38,22 @@ test("navigation links directly to every main destination", async () => {
   assert.doesNotMatch(html, /href="\/programs"/);
 });
 
+test("homepage owns the rotating community partner showcase", async () => {
+  const home = await render();
+  assert.match(home, /Opportunity moves.*when we move/i);
+  assert.match(home, /Jennings School District/i);
+  assert.match(home, /CreatorLaunch/i);
+  assert.match(home, /Next Prep/i);
+  assert.match(home, /Pause logos/i);
+  assert.match(home, /\/partners\/creatorlaunch\.png/i);
+
+  const dj = await render("/programs/dj");
+  const mentorship = await render("/programs/mentorship");
+  assert.doesNotMatch(dj, /class="program-partners/i);
+  assert.doesNotMatch(mentorship, /class="program-partners/i);
+  assert.doesNotMatch(mentorship, /Partnership spotlight/i);
+});
+
 test("program and donation actions remain available", async () => {
   const mentorship = await render("/programs/mentorship");
   assert.match(mentorship, /forms\.gle\/Gg7yigzM9zTQSEdF6/);

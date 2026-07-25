@@ -28,7 +28,7 @@ export default function MentorshipPage() {
 
       <section className="mentor-overview section-pad">
         <article className="cohort-card"><p className="section-label">Who can join</p><h2>Students ready to<br /><em>grow.</em></h2><p>The cohort is designed for students who want support with school, confidence, leadership, business ideas, career exploration, and planning what comes next.</p><div className="cohort-facts"><div><strong>Oct 1</strong><span>Start date</span></div><div><strong>Dec 31</strong><span>End date</span></div><div><strong>$50</strong><span>Stipend</span></div></div></article>
-        <article className="partnership-card"><p className="section-label">Partnership spotlight</p><h2>Future of Music<br />× Next Prep</h2><p>Next Prep brings high-quality college-and-career readiness mentorship to the cohort. Through career exploration and college search support, students build stronger postsecondary knowledge and decision-making skills.</p></article>
+        <article className="partnership-card"><p className="section-label">How it works</p><h2>Real guidance.<br />Useful next steps.</h2><p>Students meet with mentors, set practical goals, build professional skills, explore college and career options, and leave with a clearer plan for what comes next.</p></article>
       </section>
 
       <section className="pillar-section section-pad">
@@ -42,11 +42,6 @@ export default function MentorshipPage() {
       </section>
 
       <ProgramGallery title="Mentorship moments" images={mentorshipGalleryImages} />
-
-      <section className="program-partners mentor-partners section-pad">
-        <div><p className="section-label">Program community</p><h2>Mentorship grows<br />through <em>partnership.</em></h2><p>Schools, families, college-and-career partners, youth business owners, and community mentors help every student build a stronger support system.</p></div>
-        <div className="partner-pills"><span>Future of Music</span><span>Next Prep</span><span>Community Mentors</span><span>Schools &amp; Families</span></div>
-      </section>
 
       <section className="portal-section section-pad" id="portal">
         <div className="portal-copy"><p className="section-label">Current members</p><h2>Your mentorship tools<br />are <em>right here.</em></h2><p>Mentorship details and portal access now live together. Current students, mentors, and staff can use the active dashboard, while older cohort resources remain available when needed.</p></div>
