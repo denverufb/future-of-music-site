@@ -14,6 +14,7 @@ const routes = [
   ["/", /Young creators\./i],
   ["/about", /Built with youth\./i],
   ["/programs/dj", /Learn to DJ\./i],
+  ["/dj-classes", /A free DJ class\./i],
   ["/programs/mentorship", /Mentorship that feels/i],
   ["/programs/artist-development", /Artist Development/i],
   ["/programs/artist-development/course", /OPEN BETA/i],
@@ -31,7 +32,7 @@ for (const [path, pageText] of routes) {
 
 test("navigation links directly to every main destination", async () => {
   const html = await render();
-  for (const href of ["/about", "/programs/dj", "/programs/mentorship", "/team", "/donate"]) {
+  for (const href of ["/about", "/programs/dj", "/dj-classes", "/programs/mentorship", "/team", "/donate"]) {
     assert.match(html, new RegExp(`href=\\"${href.replaceAll("/", "\\/")}\\"`));
   }
   assert.doesNotMatch(html, /href="\/programs"/);
@@ -56,6 +57,14 @@ test("program and donation actions remain available", async () => {
   assert.match(donate, /About our organization/i);
   assert.match(donate, /<iframe/i);
   assert.doesNotMatch(donate, /\$25|\$100|\$500|suggested donation amount/i);
+});
+
+test("free DJ class page embeds the independent interest form", async () => {
+  const djClass = await render("/dj-classes");
+  assert.match(djClass, /hosted directly by Future of Music/i);
+  assert.match(djClass, /not limited to.*current school or organization partner program/i);
+  assert.match(djClass, /docs\.google\.com\/forms\/d\/e\/1FAIpQLSdLz2Zg9kjSuQ-EWac49RiWBfvSS_Pz1LxSh4zH0I3Exp08Jg\/viewform\?embedded=true/i);
+  assert.match(djClass, /title="Free DJ class interest form"/i);
 });
 
 test("artist development draft is self-paced and contains no video experience", async () => {

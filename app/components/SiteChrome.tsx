@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type NavKey = "home" | "about" | "programs" | "team" | "donate";
+type NavKey = "home" | "about" | "programs" | "dj-classes" | "team" | "donate";
 
 const external = { target: "_blank", rel: "noopener noreferrer" } as const;
 
@@ -35,6 +35,7 @@ export function SiteHeader({ active }: { active: NavKey }) {
               <a href="/programs/mentorship">Mentorship Program <span>Growth + guidance →</span></a>
             </div>
           </details>
+          <a href="/dj-classes" aria-current={active === "dj-classes" ? "page" : undefined}>Free DJ Class</a>
         </nav>
 
         <a className="button button-small" href="/donate" aria-current={active === "donate" ? "page" : undefined}>Donate <Arrow direction="up" /></a>
@@ -49,6 +50,7 @@ export function SiteHeader({ active }: { active: NavKey }) {
             <span className="mobile-menu-label">Programs</span>
             <a href="/programs/dj">Youth DJ Program</a>
             <a href="/programs/mentorship">Mentorship Program</a>
+            <a href="/dj-classes" aria-current={active === "dj-classes" ? "page" : undefined}>Free DJ Class</a>
             <a href="/donate">Donate</a>
           </nav>
         </details>
@@ -71,7 +73,7 @@ export function SiteFooter() {
             </a>
           </div>
         </div>
-        <div><h3>Explore</h3><a href="/about">About us</a><a href="/team">Our Team</a><a href="/programs/dj">DJ Program</a><a href="/programs/mentorship">Mentorship</a></div>
+        <div><h3>Explore</h3><a href="/about">About us</a><a href="/team">Our Team</a><a href="/programs/dj">DJ Program</a><a href="/dj-classes">Free DJ Class</a><a href="/programs/mentorship">Mentorship</a></div>
         <div><h3>Take action</h3><a href="https://forms.gle/Gg7yigzM9zTQSEdF6" {...external}>Apply ↗</a><a href="/donate">Donate</a><a href="mailto:info@fomusic.org">Contact us</a><a href="https://fomusic.org/portal-v2/" {...external}>Member portal ↗</a></div>
         <div><h3>Contact</h3><a href="mailto:info@fomusic.org">info@fomusic.org</a><a href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/" {...external}>View Candid profile ↗</a></div>
       </div>
