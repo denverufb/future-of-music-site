@@ -46,11 +46,6 @@ export default function DjProgramPage() {
 
       <ProgramGallery title="DJ moments" images={djGalleryImages} />
 
-      <section className="program-partners section-pad">
-        <div><p className="section-label">Program community</p><h2>Made possible<br />with <em>partners.</em></h2><p>Future of Music works with schools, youth organizations, community leaders, and businesses to place equipment and opportunity where students already are.</p></div>
-        <div className="partner-pills"><span>Future of Music</span><span>Jennings School District</span><span>CreatorLaunch</span><span>Community Partners</span></div>
-      </section>
-
       <section className="program-final-cta dj-final"><div><p className="section-label">Schools • nonprofits • businesses</p><h2>Bring the beat<br />to your community.</h2></div><div><p>Host, sponsor, or support a Future of Music DJ Program experience.</p><a className="button button-yellow" href="mailto:aereon@fomusic.org?subject=DJ%20Program%20Partnership">Become a DJ Program partner <Arrow /></a></div></section>
     </PageShell>
   );
