@@ -1,4 +1,5 @@
 import { Arrow, external, PageShell } from "./components/SiteChrome";
+import PartnerCarousel from "./components/PartnerCarousel";
 
 export default function Home() {
   return (
@@ -52,6 +53,8 @@ export default function Home() {
           </article>
         </div>
       </section>
+
+      <PartnerCarousel />
 
       <section className="home-action">
         <div><p className="section-label">Ready to move?</p><h2>There’s a place for you<br />in the <em>mix.</em></h2></div>
