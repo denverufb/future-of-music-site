@@ -32,7 +32,7 @@ export function SiteHeader({ active }: { active: NavKey }) {
             <summary aria-current={active === "programs" ? "page" : undefined}>Programs <span aria-hidden="true">⌄</span></summary>
             <div className="nav-dropdown">
               <a href="/programs/dj">Youth DJ Program <span>Music + technology →</span></a>
-              <a href="/programs/mentorship">Mentorship Program <span>Growth + guidance →</span></a>
+              <a href="/mentorship">Mentorship Program <span>Growth + guidance →</span></a>
             </div>
           </details>
           <a href="/dj-classes" aria-current={active === "dj-classes" ? "page" : undefined}>Free DJ Class</a>
@@ -49,7 +49,7 @@ export function SiteHeader({ active }: { active: NavKey }) {
             <a href="/team">Our Team</a>
             <span className="mobile-menu-label">Programs</span>
             <a href="/programs/dj">Youth DJ Program</a>
-            <a href="/programs/mentorship">Mentorship Program</a>
+            <a href="/mentorship">Mentorship Program</a>
             <a href="/dj-classes" aria-current={active === "dj-classes" ? "page" : undefined}>Free DJ Class</a>
             <a href="/donate">Donate</a>
           </nav>
@@ -73,7 +73,7 @@ export function SiteFooter() {
             </a>
           </div>
         </div>
-        <div><h3>Explore</h3><a href="/about">About us</a><a href="/team">Our Team</a><a href="/programs/dj">DJ Program</a><a href="/dj-classes">Free DJ Class</a><a href="/programs/mentorship">Mentorship</a></div>
+        <div><h3>Explore</h3><a href="/about">About us</a><a href="/team">Our Team</a><a href="/programs/dj">DJ Program</a><a href="/dj-classes">Free DJ Class</a><a href="/mentorship">Mentorship</a></div>
         <div><h3>Take action</h3><a href="https://forms.gle/Gg7yigzM9zTQSEdF6" {...external}>Apply ↗</a><a href="/donate">Donate</a><a href="mailto:info@fomusic.org">Contact us</a><a href="https://fomusic.org/portal-v2/" {...external}>Member portal ↗</a></div>
         <div><h3>Contact</h3><a href="mailto:info@fomusic.org">info@fomusic.org</a><a href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/" {...external}>View Candid profile ↗</a></div>
       </div>

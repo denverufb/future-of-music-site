@@ -49,7 +49,7 @@ export default function Home() {
           </article>
           <article className="home-program-card mentor-card">
             <div className="mentor-mini-poster" aria-hidden="true"><span>MENTOR</span><i></i><span>MENTEE</span><i></i><span>FUTURE</span></div>
-            <div><p>GRADES 5–12 / 3 MONTHS</p><h3>Mentorship Program</h3><span>Personal development, academics, entrepreneurship, and college-and-career readiness.</span><a className="button" href="/programs/mentorship">Explore Mentorship <Arrow /></a></div>
+            <div><p>GRADES 5–12 / 3 MONTHS</p><h3>Mentorship Program</h3><span>Personal development, academics, entrepreneurship, and college-and-career readiness.</span><a className="button" href="/mentorship">Explore Mentorship <Arrow /></a></div>
           </article>
         </div>
       </section>

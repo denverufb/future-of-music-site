@@ -15,7 +15,7 @@ const routes = [
   ["/about", /Built with youth\./i],
   ["/programs/dj", /Learn to DJ\./i],
   ["/dj-classes", /A free DJ class\./i],
-  ["/programs/mentorship", /Mentorship that feels/i],
+  ["/mentorship", /Mentorship that feels/i],
   ["/programs/artist-development", /Artist Development/i],
   ["/programs/artist-development/course", /OPEN BETA/i],
   ["/team", /Youth-led/i],
@@ -32,14 +32,38 @@ for (const [path, pageText] of routes) {
 
 test("navigation links directly to every main destination", async () => {
   const html = await render();
-  for (const href of ["/about", "/programs/dj", "/dj-classes", "/programs/mentorship", "/team", "/donate"]) {
+  for (const href of ["/about", "/programs/dj", "/dj-classes", "/mentorship", "/team", "/donate"]) {
     assert.match(html, new RegExp(`href=\\"${href.replaceAll("/", "\\/")}\\"`));
   }
   assert.doesNotMatch(html, /href="\/programs"/);
+  assert.doesNotMatch(html, /href="\/programs\/mentorship"/);
+});
+
+test("the former mentorship URL redirects to the short address", async () => {
+  const legacy = await render("/programs/mentorship");
+  assert.match(legacy, /window\.location\.replace\(['"]\/mentorship\/['"]\)/i);
+  assert.match(legacy, /href="\/mentorship\/"/i);
+  assert.doesNotMatch(legacy, /Mentorship that feels/i);
+});
+
+test("homepage owns the rotating community partner showcase", async () => {
+  const home = await render();
+  assert.match(home, /Opportunity moves.*when we move/i);
+  assert.match(home, /Jennings School District/i);
+  assert.match(home, /CreatorLaunch/i);
+  assert.match(home, /Next Prep/i);
+  assert.match(home, /Pause logos/i);
+  assert.match(home, /\/partners\/creatorlaunch\.png/i);
+
+  const dj = await render("/programs/dj");
+  const mentorship = await render("/mentorship");
+  assert.doesNotMatch(dj, /class="program-partners/i);
+  assert.doesNotMatch(mentorship, /class="program-partners/i);
+  assert.doesNotMatch(mentorship, /Partnership spotlight/i);
 });
 
 test("program and donation actions remain available", async () => {
-  const mentorship = await render("/programs/mentorship");
+  const mentorship = await render("/mentorship");
   assert.match(mentorship, /forms\.gle\/Gg7yigzM9zTQSEdF6/);
   assert.match(mentorship, /fomusic\.org\/portal-v2\//);
 

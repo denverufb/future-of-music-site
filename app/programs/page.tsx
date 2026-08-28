@@ -8,7 +8,7 @@ export default function ProgramsPage() {
         <div className="action-row" style={{ justifyContent: "center" }}>
           <a className="btn" href="/programs/dj/">Youth DJ Program</a>
           <a className="btn" href="/dj-classes/">Free DJ Class</a>
-          <a className="btn btn-secondary" href="/programs/mentorship/">Mentorship Program</a>
+          <a className="btn btn-secondary" href="/mentorship/">Mentorship Program</a>
         </div>
       </section>
     </main>
