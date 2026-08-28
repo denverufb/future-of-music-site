@@ -16,6 +16,7 @@ const routes = [
   ["/programs/dj", /Learn to DJ\./i],
   ["/dj-classes", /A free DJ class\./i],
   ["/programs/mentorship", /Mentorship that feels/i],
+  ["/mentorship", /Mentorship that feels/i],
   ["/programs/artist-development", /Artist Development/i],
   ["/programs/artist-development/course", /OPEN BETA/i],
   ["/team", /Youth-led/i],
@@ -32,10 +33,11 @@ for (const [path, pageText] of routes) {
 
 test("navigation links directly to every main destination", async () => {
   const html = await render();
-  for (const href of ["/about", "/programs/dj", "/dj-classes", "/programs/mentorship", "/team", "/donate"]) {
+  for (const href of ["/about", "/programs/dj", "/dj-classes", "/mentorship", "/team", "/donate"]) {
     assert.match(html, new RegExp(`href=\\"${href.replaceAll("/", "\\/")}\\"`));
   }
   assert.doesNotMatch(html, /href="\/programs"/);
+  assert.doesNotMatch(html, /href="\/programs\/mentorship"/);
 });
 
 test("homepage owns the rotating community partner showcase", async () => {
