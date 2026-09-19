@@ -12,7 +12,7 @@ async function render(path = "/") {
 
 const routes = [
   ["/", /Young creators\./i],
-  ["/about", /Built with youth\./i],
+  ["/about", /worth passing on\./i],
   ["/programs/dj", /Learn to DJ\./i],
   ["/dj-classes", /A free DJ class\./i],
   ["/mentorship", /Mentorship that feels/i],
@@ -119,4 +119,26 @@ test("footer includes the embedded Candid transparency seal", async () => {
   const html = await render();
   assert.match(html, /widgets\.guidestar\.org\/prod\/v1\/pdp\/transparency-seal\/16383723\/svg/);
   assert.doesNotMatch(html, /qwentin@fomusic\.org/);
+});
+
+test("About tells the story with the six supplied photos in their requested sections", async () => {
+  const html = await render("/about");
+  const fom = html.split('data-photo-section="fom"')[1]?.split('</article>')[0];
+  const founder = html.split('data-photo-section="founder"')[1]?.split('</section>')[0];
+  assert.ok(fom && founder);
+  for (const [section, names] of [[fom, ['fom-community', 'students-learning', 'students-creating']], [founder, ['founder-at-the-decks', 'founder-teaching', 'founder-with-students']]]) {
+    assert.equal((section.match(/<img /g) || []).length, 3);
+    for (const name of names) {
+      assert.ok(section.includes(`/images/about/${name}-1600.webp`));
+      for (const width of [800, 1600]) {
+        const image = await readFile(join(output, `images/about/${name}-${width}.webp`));
+        assert.equal(image.toString('ascii', 8, 12), 'WEBP');
+      }
+    }
+  }
+  assert.match(html, /id="our-mission"/);
+  assert.match(html, /townandstyle\.com\/student-standouts/);
+  assert.match(html, /stlamerican\.com\/business\/from-teen-dj-to-teen-mentor/);
+  assert.match(html, /bizjournals\.com\/stlouis\/news\/2025\/10\/25/);
+  assert.doesNotMatch(html, /class="page-hero about-hero"|class="value-grid"|class="story-link-grid"/);
 });
