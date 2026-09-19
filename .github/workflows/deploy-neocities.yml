@@ -23,28 +23,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
       - name: Upload the site
-        env:
-          NEOCITIES_API_KEY: ${{ secrets.NEOCITIES_API_KEY }}
-        run: |
-          cd out
-          upload_args=()
-          upload_batch() {
-            if (( ${#upload_args[@]} == 0 )); then
-              return
-            fi
-            curl --fail --silent --show-error \
-              --retry 3 \
-              --retry-all-errors \
-              --retry-delay 5 \
-              -H "Authorization: Bearer ${NEOCITIES_API_KEY}" \
-              "${upload_args[@]}" \
-              https://neocities.org/api/upload
-            upload_args=()
-          }
-          while IFS= read -r -d '' file; do
-            upload_args+=( -F "${file#./}=@${file#./}" )
-            if (( ${#upload_args[@]} >= 25 )); then
-              upload_batch
-            fi
-          done < <(find . -type f -print0)
-          upload_batch
+        uses: bcomnes/deploy-to-neocities@v3
+        with:
+          api_key: ${{ secrets.NEOCITIES_API_KEY }}
+          cleanup: false
+          neocities_supporter: false
+          preview_before_deploy: true
+          dist_dir: out
