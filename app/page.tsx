@@ -15,14 +15,14 @@ export default function Home() {
           </div>
         </div>
         <div className="hero-art">
-          <figure className="hero-photo"><img src="/gallery/dj/01-program-group.jpg" alt="Future of Music students gathered around DJ equipment" /></figure>
+          <figure className="hero-photo" style={{ aspectRatio: "auto", borderRadius: 28, transform: "none" }}><img src="/images/about/fom-community-1600.webp" srcSet="/images/about/fom-community-800.webp 800w, /images/about/fom-community-1600.webp 1600w" sizes="(max-width: 1000px) 90vw, 50vw" width={1600} height={944} style={{ height: "auto" }} alt="Future of Music students together with headphones, laptops, and DJ equipment" fetchPriority="high" /></figure>
           <div className="hero-sticker sticker-yellow">CREATE<br />LOUDLY.</div>
           <div className="hero-sticker sticker-white">ST. LOUIS</div>
         </div>
       </section>
 
       <section className="impact-rail" aria-label="Future of Music impact">
-        <div><strong>50+</strong><span>young people reached through DJ education</span></div>
+        <div><strong>100+</strong><span>youth served through our programs</span></div>
         <div><strong>500+</strong><span>mentorship minutes logged</span></div>
         <div><strong>100%</strong><span>free for every participating student</span></div>
       </section>
@@ -34,7 +34,7 @@ export default function Home() {
           <p>Future of Music gives young people the equipment, mentors, opportunities, and room to become more than they can currently imagine.</p>
           <a className="button" href="/about">Our story <Arrow /></a>
         </div>
-        <figure><img src="/gallery/dj/02-workshop.jpg" alt="Future of Music students learning at a DJ workshop" /></figure>
+        <figure style={{ aspectRatio: "auto" }}><img src="/images/about/students-creating-1600.webp" srcSet="/images/about/students-creating-800.webp 800w, /images/about/students-creating-1600.webp 1600w" sizes="(max-width: 1000px) 90vw, 45vw" width={1600} height={1479} style={{ height: "auto" }} alt="Young people learning together as a student practices on a DJ controller" loading="lazy" decoding="async" /></figure>
       </section>
 
       <section className="home-programs section-pad" id="programs">
