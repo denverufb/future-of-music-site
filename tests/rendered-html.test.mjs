@@ -18,9 +18,28 @@ const routes = [
   ["/mentorship", /Mentorship that feels/i],
   ["/programs/artist-development", /Artist Development/i],
   ["/programs/artist-development/course", /OPEN BETA/i],
-  ["/team", /Youth-led/i],
+  ["/team", /Meet the team\./i],
+  ["/team/aereon", /Aereon Robinson/i],
+  ["/team/qwentin", /Qwentin Blassingame/i],
+  ["/team/gabriel", /Gabriel Walker/i],
   ["/donate", /Give young creators/i],
 ];
+
+test("team directory links to individual biographies in the requested order", async () => {
+  const html = await render("/team");
+  const main = html.split('<main')[1]?.split('</main>')[0];
+  assert.ok(main);
+  const cards = [...main.matchAll(/href="\/team\/(aereon|qwentin|gabriel)\/"/g)].map(match => match[1]);
+  assert.deepEqual(cards, ["aereon", "qwentin", "gabriel"]);
+  assert.equal((main.match(/Read bio/g) ?? []).length, 3);
+  assert.match(main, /Managing Director/);
+  assert.doesNotMatch(main, /team-stack|small team|big ideas|honest belief|Managing Director &amp; Program Coach/i);
+  for (const slug of cards) {
+    const profile = await render(`/team/${slug}`);
+    assert.match(profile, /href="\/team\/"/);
+    assert.match(profile, /mailto:/);
+  }
+});
 
 for (const [path, pageText] of routes) {
   test(`exports ${path} as a static page`, async () => {
