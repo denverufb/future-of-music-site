@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
+import "./editorial.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://fomusic.org"),
-  title: "Future of Music | Young Creators. Real Futures.",
+  title: "Future of Music | Music Education & Youth Opportunity",
   description: "Future of Music is a youth-led St. Louis nonprofit offering free DJ education, mentorship, leadership, technology, and entrepreneurship programs.",
   icons: { icon: "/images/logo-square.png", shortcut: "/images/logo-square.png" },
   openGraph: {

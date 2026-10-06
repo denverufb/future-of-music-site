@@ -11,18 +11,20 @@ async function render(path = "/") {
 }
 
 const routes = [
-  ["/", /Young creators\./i],
+  ["/", /Learn music\./i],
   ["/about", /worth passing on\./i],
-  ["/programs/dj", /Learn to DJ\./i],
-  ["/dj-classes", /A free DJ class\./i],
-  ["/mentorship", /Mentorship that feels/i],
+  ["/programs/dj", /Youth DJ Program/i],
+  ["/dj-classes", /Continue to registration/i],
+  ["/mentorship", /Mentorship Program/i],
   ["/programs/artist-development", /Artist Development/i],
   ["/programs/artist-development/course", /OPEN BETA/i],
   ["/team", /Meet the team\./i],
   ["/team/aereon", /Aereon Robinson/i],
   ["/team/qwentin", /Qwentin Blassingame/i],
   ["/team/gabriel", /Gabriel Walker/i],
-  ["/donate", /Give young creators/i],
+  ["/donate", /Make a donation/i],
+  ["/blog", /Stories &amp; findings/i],
+  ["/blog/inside-the-youth-dj-program", /Inside the Youth DJ Program/i],
 ];
 
 test("team directory links to individual biographies in the requested order", async () => {
@@ -51,7 +53,7 @@ for (const [path, pageText] of routes) {
 
 test("navigation links directly to every main destination", async () => {
   const html = await render();
-  for (const href of ["/about", "/programs/dj", "/dj-classes", "/mentorship", "/team", "/donate"]) {
+  for (const href of ["/about", "/programs/dj", "/mentorship", "/team", "/donate", "/blog"]) {
     assert.match(html, new RegExp(`href=\\"${href.replaceAll("/", "\\/")}\\"`));
   }
   assert.doesNotMatch(html, /href="\/programs"/);
@@ -65,13 +67,12 @@ test("the former mentorship URL redirects to the short address", async () => {
   assert.doesNotMatch(legacy, /Mentorship that feels/i);
 });
 
-test("homepage owns the rotating community partner showcase", async () => {
+test("homepage presents the community partners", async () => {
   const home = await render();
-  assert.match(home, /Opportunity moves.*when we move/i);
+  assert.match(home, /Working with our community/i);
   assert.match(home, /Jennings School District/i);
   assert.match(home, /CreatorLaunch/i);
   assert.match(home, /Next Prep/i);
-  assert.match(home, /Pause logos/i);
   assert.match(home, /\/partners\/creatorlaunch\.png/i);
 
   const dj = await render("/programs/dj");
@@ -92,7 +93,7 @@ test("program and donation actions remain available", async () => {
   for (const filename of ["01-program-group.jpg", "02-workshop.jpg", "03-controller-closeup.jpg", "04-students-mixing.jpg", "05-student-laptop.jpg"]) {
     assert.match(dj, new RegExp(`/gallery/dj/${filename.replace(".", "\\.")}`));
   }
-  assert.equal((mentorship.match(/data-gallery-slot="blank\.png"/g) ?? []).length, 6);
+  assert.equal((mentorship.match(/data-gallery-slot="blank\.png"/g) ?? []).length, 0);
 
   const donate = await render("/donate");
   assert.match(donate, /data-form-url="\/embed\/donation-form\/future-of-music"/);
@@ -102,17 +103,21 @@ test("program and donation actions remain available", async () => {
   assert.doesNotMatch(donate, /\$25|\$100|\$500|suggested donation amount/i);
 });
 
-test("free DJ class page embeds the independent interest form", async () => {
-  const djClass = await render("/dj-classes");
+test("DJ program contains the class details and interest form; old URL redirects", async () => {
+  const djClass = await render("/programs/dj");
   assert.match(djClass, /hosted directly by Future of Music/i);
   assert.match(djClass, /not limited to.*current school or organization partner program/i);
   assert.match(djClass, /docs\.google\.com\/forms\/d\/e\/1FAIpQLSdLz2Zg9kjSuQ-EWac49RiWBfvSS_Pz1LxSh4zH0I3Exp08Jg\/viewform\?embedded=true/i);
   assert.match(djClass, /title="Free DJ class interest form"/i);
+  assert.match(djClass, /id="registration"/);
+  const previous = await render("/dj-classes");
+  assert.match(previous, /window.location.replace\("&quot;|window.location.replace\("/);
+  assert.match(previous, /href="\/programs\/dj\/#registration"/);
 });
 
 test("artist development draft is self-paced and contains no video experience", async () => {
   const academy = await render("/programs/artist-development");
-  assert.match(academy, /Find your sound\. Build your brand\. Prepare for the industry\./i);
+  assert.match(academy, /Learn through readings, narration, creative activities, and quizzes/i);
   assert.match(academy, /Artist Development Portfolio/i);
   assert.match(academy, /100%.*ONLINE.*SELF-PACED/i);
   assert.doesNotMatch(academy, /\bvideo(s)?\b/i);

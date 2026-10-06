@@ -1,0 +1,36 @@
+[
+  {
+    "slug": "inside-the-youth-dj-program",
+    "title": "Inside the Youth DJ Program",
+    "category": "Program notes",
+    "date": "2026-10-05",
+    "author": "Future of Music",
+    "published": true,
+    "excerpt": "How equipment, hands-on instruction, and group practice come together in our DJ program.",
+    "image": "hands-on-instruction",
+    "imageAlt": "An instructor and young students working together around a DJ controller",
+    "sections": [
+      {
+        "heading": "Starting with the equipment",
+        "paragraphs": [
+          "The Youth DJ Program introduces students to the tools used to select and mix music: controllers, headphones, laptops, and music software. Our equipment includes Pioneer DJ DDJ-FLX4 controllers.",
+          "Instruction begins with the controls. Students learn about cueing, rhythm, tempo, and transitions, then spend time practicing the techniques themselves."
+        ]
+      },
+      {
+        "heading": "Learning together",
+        "paragraphs": [
+          "Group practice gives students a chance to take turns, listen to one another, and explain their creative decisions. Instructors are there to answer questions and help students work through unfamiliar steps.",
+          "Communication and collaboration are part of the curriculum alongside technical skills. Students also explore creative identity, professionalism, entrepreneurship, and preparing to share a mix."
+        ]
+      },
+      {
+        "heading": "Joining a class",
+        "paragraphs": [
+          "The program serves youth ages 8–18 and is free for participating students. Workshops and enrichment sessions can be adapted for schools and community organizations.",
+          "Families can register interest in a community class through the Youth DJ Program page. Dates, location, and capacity are confirmed separately; completing the interest form is not a guaranteed booking."
+        ]
+      }
+    ]
+  }
+]

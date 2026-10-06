@@ -1,52 +1,28 @@
 import type { Metadata } from "next";
-import { Arrow, PageShell, ProgramGallery } from "../../components/SiteChrome";
+import { external, PageShell, ProgramGallery } from "../../components/SiteChrome";
+import ProgramPhoto from "../../components/ProgramPhoto";
 import { djGalleryImages } from "../../gallery";
 
-export const metadata: Metadata = { title: "Youth DJ Program | Future of Music", description: "Free hands-on DJ education for youth ages 8–18 in St. Louis." };
-
+export const metadata: Metadata = { title: "Youth DJ Program & Free Class Registration | Future of Music", description: "Free hands-on DJ education for youth ages 8–18 in St. Louis. Learn about the program and register interest in a community DJ class." };
+const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdLz2Zg9kjSuQ-EWac49RiWBfvSS_Pz1LxSh4zH0I3Exp08Jg/viewform";
 const lessons = [
-  ["01", "DJ fundamentals", "Students learn to use DJ controllers, headphones, software, and professional equipment safely and confidently."],
-  ["02", "Music + mixing", "Song structure, rhythm, tempo, cueing, transitions, music selection, and the skills behind a smooth mix."],
-  ["03", "Creative business", "Branding, creative identity, professionalism, entrepreneurship, and opportunities across the music industry."],
-  ["04", "Leadership + performance", "Communication, teamwork, decision-making, stage presence, and preparation for a final performance."],
+  ["01", "Equipment & music technology", "Learn to use DJ controllers, headphones, music software, and the controls behind a mix. Our equipment includes Pioneer DJ DDJ-FLX4 controllers."],
+  ["02", "Music & mixing", "Practice rhythm, tempo, cueing, song selection, and transitions. Guided instruction is followed by time to try the techniques independently."],
+  ["03", "Collaboration & leadership", "Take turns, listen to feedback, make decisions as a group, and practice explaining creative choices."],
+  ["04", "Creative business & performance", "Explore creative identity, branding, professionalism, entrepreneurship, and how to prepare and share a final mix."],
 ];
-
 export default function DjProgramPage() {
-  return (
-    <PageShell active="programs" mainClassName="program-theme program-theme-dj">
-      <section className="program-page-hero dj-page-hero">
-        <div className="program-hero-copy"><p className="program-chip">FREE • AGES 8–18</p><h1>Learn to DJ.<br /><em>Create with confidence.</em><br />Lead with purpose.</h1><p>Hands-on DJ training that combines music, technology, entrepreneurship, and leadership in one unforgettable learning experience.</p><div className="button-row"><a className="button button-yellow" href="mailto:aereon@fomusic.org?subject=Bring%20the%20DJ%20Program">Bring this program <Arrow /></a><a className="text-link light-link" href="#curriculum">See what students learn <Arrow direction="down" /></a></div></div>
-        <figure><img src="/gallery/dj/03-controller-closeup.jpg" alt="DJ controller ready for a Future of Music session" /><div>50+<span>YOUTH SERVED</span></div></figure>
-      </section>
-
-      <div className="dj-ticker" aria-label="Mix, create, lead, and perform">
-        <span>MIX</span><i></i><span>CREATE</span><i></i><span>LEAD</span><i></i><span>PERFORM</span>
-      </div>
-
-      <section className="program-overview section-pad">
-        <div className="overview-statement"><p className="section-label">Program overview</p><h2>Where music, technology, business, and leadership <em>meet.</em></h2></div>
-        <div className="overview-copy"><p className="large-copy">Students do more than learn the controls.</p><p>Through guided instruction, collaborative activities, independent practice, and performance opportunities, young people learn to mix music, express themselves, solve problems, and work effectively with others.</p><p>By the end of the program, participants leave with practical DJ skills, a clearer understanding of the music industry, and the confidence to turn creative interests into real-world opportunities.</p></div>
-      </section>
-
-      <section className="curriculum section-pad" id="curriculum">
-        <div className="compact-heading"><div><p className="section-label light">The curriculum</p><h2>Four parts.<br /><em>One complete mix.</em></h2></div><p>Beginner-friendly instruction builds skills step by step, with time to practice and create.</p></div>
-        <div className="lesson-grid">{lessons.map(([number,title,copy]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p></article>)}</div>
-      </section>
-
-      <section className="program-formats section-pad">
-        <div className="compact-heading"><div><p className="section-label">Program fit</p><h2>Flexible for different<br /><em>youth spaces.</em></h2></div><p>The DJ Program can be adapted for elementary, middle, and high school groups based on the setting and student needs.</p></div>
-        <div className="format-grid">
-          <article><span>01</span><h3>Workshops</h3><p>Short sessions introducing DJ equipment and foundational creative music skills.</p></article>
-          <article><span>02</span><h3>Enrichment</h3><p>After-school, summer, or partner programming for deeper music technology learning.</p></article>
-          <article><span>03</span><h3>Performance</h3><p>Practice communication, creative decisions, stage presence, and sharing a final mix.</p></article>
-        </div>
-      </section>
-
-      <section className="program-gallery"><figure><img src="/gallery/dj/04-students-mixing.jpg" alt="Students practicing DJ skills together" /></figure><div><span>TURN</span><strong>IT</strong><em>UP.</em></div><figure><img src="/gallery/dj/05-student-laptop.jpg" alt="Student learning DJ software and music selection" /></figure></section>
-
-      <ProgramGallery title="DJ moments" images={djGalleryImages} />
-
-      <section className="program-final-cta dj-final"><div><p className="section-label">Schools • nonprofits • businesses</p><h2>Bring the beat<br />to your community.</h2></div><div><p>Host, sponsor, or support a Future of Music DJ Program experience.</p><a className="button button-yellow" href="mailto:aereon@fomusic.org?subject=DJ%20Program%20Partnership">Become a DJ Program partner <Arrow /></a></div></section>
-    </PageShell>
-  );
+  return <PageShell active="programs" mainClassName="editorial-page">
+    <section className="editorial-container editorial-feature">
+      <div><p className="editorial-kicker">Music & technology · Ages 8–18</p><h1>Youth DJ Program</h1><p className="editorial-lede">An introduction to DJing through hands-on instruction, practice, and group collaboration. Students learn with real equipment while building communication and leadership skills.</p><div className="button-row"><a className="button" href="#registration">Free class registration</a><a className="text-link" href="#curriculum">What students learn</a></div></div>
+      <ProgramPhoto name="hands-on-instruction" alt="Aereon and a group of students gathered around a DJ controller for hands-on instruction" caption="Learning the controls together, with time for questions and practice." eager />
+    </section>
+    <dl className="editorial-container editorial-facts"><div><dt>Participants</dt><dd>Youth ages 8–18</dd></div><div><dt>Cost</dt><dd>Free for students</dd></div><div><dt>Format</dt><dd>In-person instruction</dd></div></dl>
+    <section className="editorial-container editorial-section editorial-columns" id="curriculum"><div><p className="editorial-kicker">What students learn</p><h2>From the first controls to a shared mix.</h2><p>Sessions combine guided instruction, independent practice, and collaborative activities. The program can be adapted for elementary, middle, and high school groups.</p><ProgramPhoto name="dj-equipment" alt="A close view of DJ controllers set up for a Future of Music workshop" caption="Access to controllers, headphones, laptops, and music software." /></div><div className="editorial-list">{lessons.map(([number,title,copy]) => <article key={number}><span>{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article>)}</div></section>
+    <section className="editorial-band"><div className="editorial-container"><div className="editorial-section-heading"><p className="editorial-kicker">In the classroom</p><h2>Practice, participation, and working together.</h2></div><div className="editorial-grid-three"><div><ProgramPhoto name="students-together" alt="Two students together beside DJ equipment, one wearing headphones" caption="Students share the equipment and learn alongside one another." /></div><div><ProgramPhoto name="student-headphones" alt="A student listening through headphones while practicing at a DDJ-FLX4 controller" caption="Individual practice with support close by." /></div><div><ProgramPhoto name="class-community" alt="A Future of Music class gathered with their instructor and equipment" caption="A shared learning experience for the whole group." /></div></div></div></section>
+    <section className="editorial-container editorial-section"><div className="editorial-section-heading"><p className="editorial-kicker">For schools & community organizations</p><h2>Ways to host the program.</h2></div><div className="editorial-grid-three"><article><h3>Introductory workshops</h3><p>Short sessions introducing DJ equipment and foundational music skills.</p></article><article><h3>Enrichment programs</h3><p>After-school, summer, or partner sessions with more time for practice.</p></article><article><h3>Performance preparation</h3><p>Support with music selection, stage presence, communication, and sharing a final mix.</p></article></div></section>
+    <section className="registration" id="registration"><div className="editorial-container registration-layout"><div><p className="editorial-kicker">Open community class</p><h2>Free DJ class registration</h2><p>Share your interest in a beginner-friendly DJ class hosted directly by Future of Music. It is independent from, and not limited to, any current school or organization partner program.</p><dl className="registration-details"><div><dt>Experience</dt><dd>No DJ experience required</dd></div><div><dt>Schedule</dt><dd>Date, time, and location shared when the class is confirmed</dd></div><div><dt>For families</dt><dd>A parent or guardian may complete the form for a child</dd></div></dl></div><div><p>Complete the interest form and we will follow up with class details and next steps.</p><div className="registration-note"><p>This is an interest form, not a confirmed booking. A seat is not guaranteed until the class date and capacity are confirmed.</p></div><details className="registration-form"><summary>Complete the interest form</summary><iframe src={formUrl + "?embedded=true"} title="Free DJ class interest form" loading="lazy">Loading…</iframe></details><p className="form-fallback">Prefer a separate window? <a href={formUrl} {...external}>Open the interest form in a new tab</a>.</p></div></div></section>
+    <ProgramGallery title="More from our workshops" images={djGalleryImages} />
+    <section className="editorial-container editorial-cta"><div><h2>Bring the program to your community.</h2><p>Contact us about hosting, sponsoring, or supporting a DJ program.</p></div><a className="button" href="mailto:aereon@fomusic.org?subject=DJ%20Program%20Partnership">Become a DJ Program partner</a></section>
+  </PageShell>;
 }

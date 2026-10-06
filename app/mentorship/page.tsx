@@ -1,56 +1,21 @@
 import type { Metadata } from "next";
-import { Arrow, external, PageShell, ProgramGallery } from "../components/SiteChrome";
+import { external, PageShell, ProgramGallery } from "../components/SiteChrome";
 import { mentorshipGalleryImages } from "../gallery";
-
 export const metadata: Metadata = { title: "Mentorship Program | Future of Music", description: "A three-month peer mentorship program for students in grades 5–12." };
-
 const pillars = [
   ["01", "Personal development", "Accountability, leadership, communication, confidence, and goal setting."],
   ["02", "Academics", "Homework support, academic planning, school progress, and stronger learning habits."],
   ["03", "Entrepreneurship", "Ideas, branding, professionalism, and guidance from teenage business owners."],
-  ["04", "College + career", "Career exploration, college pathways, networking, and postsecondary decisions."],
+  ["04", "College & career", "Career exploration, college pathways, networking, and postsecondary decisions."],
 ];
-
 export default function MentorshipPage() {
-  return (
-    <PageShell active="programs" mainClassName="program-theme program-theme-mentor">
-      <section className="program-page-hero mentor-page-hero">
-        <div className="program-hero-copy"><p className="program-chip">FALL COHORT • GRADES 5–12</p><h1>Mentorship that feels<br /><em>real and useful.</em></h1><p>A one-of-a-kind three-month peer mentorship program guided by student business owners, community leaders, and college-and-career readiness partners.</p><div className="stipend"><strong>$50</strong><span>STIPEND FOR EVERY PARTICIPATING MENTEE</span></div><div className="button-row"><a className="button" href="https://forms.gle/Gg7yigzM9zTQSEdF6" {...external}>Apply for mentorship <Arrow direction="up" /></a><a className="text-link" href="#portal">Member portal <Arrow direction="down" /></a></div></div>
-        <div className="mentor-main-poster" aria-label="Mentorship program dates"><p>OCTOBER 01 — DECEMBER 31</p><strong>3<br />MONTHS</strong><div><span>MENTOR</span><i></i><span>MENTEE</span><i></i><span>FUTURE</span></div></div>
-      </section>
-
-      <div className="mentor-promise-strip" aria-label="Mentorship program commitments">
-        <span><strong>01</strong> Be seen</span>
-        <span><strong>02</strong> Get support</span>
-        <span><strong>03</strong> Build a plan</span>
-        <span><strong>04</strong> Move forward</span>
-      </div>
-
-      <section className="mentor-overview section-pad">
-        <article className="cohort-card"><p className="section-label">Who can join</p><h2>Students ready to<br /><em>grow.</em></h2><p>The cohort is designed for students who want support with school, confidence, leadership, business ideas, career exploration, and planning what comes next.</p><div className="cohort-facts"><div><strong>Oct 1</strong><span>Start date</span></div><div><strong>Dec 31</strong><span>End date</span></div><div><strong>$50</strong><span>Stipend</span></div></div></article>
-        <article className="partnership-card"><p className="section-label">How it works</p><h2>Real guidance.<br />Useful next steps.</h2><p>Students meet with mentors, set practical goals, build professional skills, explore college and career options, and leave with a clearer plan for what comes next.</p></article>
-      </section>
-
-      <section className="pillar-section section-pad">
-        <div className="compact-heading"><div><p className="section-label">Core pillars</p><h2>Four kinds of support.<br /><em>One stronger student.</em></h2></div><p>Each pillar gives students something practical they can use in school, business, leadership, and life.</p></div>
-        <div className="pillar-grid">{pillars.map(([number,title,copy]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p></article>)}</div>
-      </section>
-
-      <section className="experiences section-pad">
-        <div className="compact-heading"><div><p className="section-label light">Cohort experiences</p><h2>More than a<br /><em>weekly check-in.</em></h2></div></div>
-        <div className="experience-grid"><article><span>01</span><h3>Mentee Day events</h3><p>Fun activities that build connection, confidence, and belonging.</p></article><article><span>02</span><h3>Community service</h3><p>Trips that help students practice leadership and understand local impact.</p></article><article><span>03</span><h3>Networking</h3><p>Meet community leaders, young business owners, mentors, and ambitious peers.</p></article></div>
-      </section>
-
-      <ProgramGallery title="Mentorship moments" images={mentorshipGalleryImages} />
-
-      <section className="portal-section section-pad" id="portal">
-        <div className="portal-copy"><p className="section-label">Current members</p><h2>Your mentorship tools<br />are <em>right here.</em></h2><p>Mentorship details and portal access now live together. Current students, mentors, and staff can use the active dashboard, while older cohort resources remain available when needed.</p></div>
-        <div className="portal-options"><article><span>CURRENT</span><h3>Active mentorship portal</h3><p>Tracking, cohort tools, and current-member access.</p><a className="button" href="https://fomusic.org/portal-v2/" {...external}>Open current portal <Arrow direction="up" /></a></article><article><span>ARCHIVE</span><h3>Legacy cohort portal</h3><p>Historical access for older cohort needs.</p><a className="text-link" href="https://mentee.fomusic.org/" {...external}>Open legacy portal <Arrow direction="up" /></a></article></div>
-      </section>
-
-      <section className="director-section"><div><p className="section-label">Program director</p><h2>Qwentin<br />Blassingame</h2><p>Contact Qwentin about school referrals, program partnerships, mentor support, or student opportunities.</p><a className="button button-light" href="mailto:qwentin@fomusic.org">Email Qwentin <Arrow /></a></div><figure><img src="/images/qwentin.webp" alt="Qwentin Blassingame, Mentorship Program Director" /></figure></section>
-
-      <section className="program-final-cta mentor-final"><div><p className="section-label">Applications open</p><h2>Your next chapter<br />can start here.</h2></div><div><p>Apply for support focused on personal development, academics, entrepreneurship, and college-and-career readiness.</p><a className="button" href="https://forms.gle/Gg7yigzM9zTQSEdF6" {...external}>Apply to the Mentorship Program <Arrow direction="up" /></a></div></section>
-    </PageShell>
-  );
+  const photos = mentorshipGalleryImages.filter(image => !image.src.endsWith("/blank.png"));
+  return <PageShell active="programs" mainClassName="editorial-page">
+    <section className="editorial-container editorial-feature mentorship-opening"><div><p className="editorial-kicker">Grades 5–12 · Three-month program</p><h1>Mentorship Program</h1><p className="editorial-lede">Support with school, personal goals, business ideas, and planning what comes next. Students work with mentors, student business owners, and community partners.</p><div className="button-row"><a className="button" href="https://forms.gle/Gg7yigzM9zTQSEdF6" {...external}>Apply for mentorship</a><a className="text-link" href="#portal">Member portal</a></div></div><aside className="cohort-summary"><p className="editorial-kicker">Fall cohort</p><h2>Program details</h2><dl><div><dt>Dates</dt><dd>October 1 – December 31</dd></div><div><dt>Eligibility</dt><dd>Students in grades 5–12</dd></div><div><dt>Participant stipend</dt><dd>$50 for participating mentees</dd></div></dl><p>Use the application form or contact our team for information about participation and available places.</p></aside></section>
+    <section className="editorial-band"><div className="editorial-container editorial-columns"><div><p className="editorial-kicker">How it works</p><h2>Practical guidance and regular support.</h2><p>Students meet with mentors, set goals, and develop professional skills. The program supports students across four areas.</p></div><div className="editorial-list">{pillars.map(([number,title,copy]) => <article key={number}><span>{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article>)}</div></div></section>
+    <section className="editorial-container editorial-section"><div className="editorial-section-heading"><p className="editorial-kicker">Cohort experiences</p><h2>Learning alongside other young people.</h2></div><div className="editorial-grid-three"><article><h3>Mentee Day events</h3><p>Activities that help students get to know one another and participate as a group.</p></article><article><h3>Community service</h3><p>Opportunities to practice leadership and contribute to the local community.</p></article><article><h3>Networking</h3><p>Meet community leaders, young business owners, mentors, and peers.</p></article></div></section>
+    {photos.length > 0 && <ProgramGallery title="Mentorship moments" images={photos} />}
+    <section className="editorial-container editorial-section editorial-columns" id="portal"><div><p className="editorial-kicker">Current members</p><h2>Mentorship portal</h2><p>Use the current portal for active cohort tools and tracking. Older cohort resources remain available through the legacy portal.</p></div><div className="portal-editorial"><article><h3>Current portal</h3><p>For current mentees, mentors, and staff.</p><a className="button" href="https://fomusic.org/portal-v2/" {...external}>Open current portal</a></article><article><h3>Legacy portal</h3><p>Historical resources for older cohorts.</p><a className="text-link" href="https://mentee.fomusic.org/" {...external}>Open legacy portal</a></article></div></section>
+    <section className="editorial-container editorial-cta"><div><p className="editorial-kicker">Program contact</p><h2>Qwentin Blassingame</h2><p>Contact Qwentin about school referrals, partnerships, mentor support, or participation.</p></div><a className="button" href="mailto:qwentin@fomusic.org">Email Qwentin</a></section>
+  </PageShell>;
 }

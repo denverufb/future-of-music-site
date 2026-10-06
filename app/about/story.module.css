@@ -1,4 +1,4 @@
-.about { background: #fffef9; color: #202722; --story-rule: #d6dacf; --story-accent: #174333; }
+.about { background: #ffffff; color: #172b40; --story-rule: #d6e0e9; --story-accent: #235d91; }
 .about h1, .about h2, .about h3 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; letter-spacing: -.035em; line-height: 1.12; }
 .about h1 em { color: var(--story-accent); font-weight: 400; }
 .about a:focus-visible { outline: 3px solid #2146d0; outline-offset: 5px; }

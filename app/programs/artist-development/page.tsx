@@ -34,84 +34,11 @@ const lessonSteps = [
 ];
 
 export default function ArtistDevelopmentPage() {
-  return (
-    <PageShell active="programs" mainClassName="artist-academy">
-      <section className="artist-hero">
-        <div className="artist-hero-copy">
-          <p className="artist-status">OPEN BETA • FREE • AGES 10–18</p>
-          <p className="artist-kicker">Future of Music presents</p>
-          <h1>Artist<br />Development<br /><em>Academy.</em></h1>
-          <p>Find your sound. Build your brand. Prepare for the industry.</p>
-          <div className="button-row">
-            <a className="button artist-button" href="/programs/artist-development/course">Start the open course <Arrow /></a>
-            <a className="artist-text-link" href="#curriculum">Explore the curriculum <Arrow direction="down" /></a>
-          </div>
-        </div>
-        <figure className="artist-hero-photo">
-          <img src="/gallery/dj/05-student-laptop.jpg" alt="Young artist developing music skills with a laptop and DJ controller" />
-          <figcaption><span>100%</span> ONLINE<br />SELF-PACED</figcaption>
-        </figure>
-      </section>
-
-      <section className="artist-manifesto">
-        <p>Talent is only the beginning.</p>
-        <h2>Become the artist<br />you were meant to be.</h2>
-        <div className="artist-outcomes" aria-label="Program focus areas">
-          <span>Find your sound</span><span>Develop your image</span><span>Learn the industry</span><span>Build your future</span>
-        </div>
-      </section>
-
-      <section className="artist-overview section-pad">
-        <div><p className="section-label">The program</p><h2>Creative growth.<br /><em>Industry knowledge.</em><br />A plan forward.</h2></div>
-        <div className="artist-overview-copy">
-          <p className="large-copy">A free online academy for young singers, rappers, songwriters, producers, and performers.</p>
-          <p>Students work through readings, real-world examples, interactive activities, writing exercises, quizzes, and creative projects at their own pace. Every module adds useful work to a personal Artist Development Portfolio.</p>
-          <div className="artist-facts">
-            <article><strong>4.5</strong><span>estimated hours</span></article>
-            <article><strong>27</strong><span>narrated lessons</span></article>
-            <article><strong>Any</strong><span>phone, tablet, or computer</span></article>
-            <article><strong>Free</strong><span>for participating youth</span></article>
-          </div>
-        </div>
-      </section>
-
-      <section className="artist-curriculum section-pad" id="curriculum">
-        <div className="artist-section-heading"><p className="section-label light">The curriculum</p><h2>One complete<br /><em>artist toolkit.</em></h2></div>
-        <div className="artist-module-list">
-          {modules.map(([number, title, copy]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{copy}</p></article>)}
-        </div>
-      </section>
-
-      <section className="artist-lesson section-pad">
-        <div className="artist-section-heading">
-          <p className="section-label">Every lesson</p><h2>Simple to follow.<br /><em>Built to create.</em></h2>
-          <p>No scheduled class times and no weekly deadlines. Students can stop, save their progress, and return when they are ready.</p>
-        </div>
-        <div className="artist-step-grid">
-          {lessonSteps.map(([title, copy], index) => <article key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{copy}</p></article>)}
-        </div>
-      </section>
-
-      <section className="artist-portfolio section-pad">
-        <div className="artist-portfolio-copy"><p className="section-label light">Final project</p><h2>Your Artist Development Portfolio.</h2><p>Students leave with practical materials they can use for future opportunities, applications, meetings, releases, and recording sessions.</p></div>
-        <div className="artist-portfolio-list">
-          {portfolio.map((item, index) => <div key={item}><span>{String(index + 1).padStart(2, "0")}</span><strong>{item}</strong></div>)}
-        </div>
-      </section>
-
-      <section className="artist-certificate section-pad">
-        <div className="artist-certificate-mark" aria-hidden="true"><span>FOM</span><strong>✓</strong></div>
-        <div>
-          <p className="section-label">Finish with proof</p><h2>Earn a certificate.<br /><em>Leave with a plan.</em></h2>
-          <p>Participants who complete every module, meet the quiz requirement, submit their portfolio, and complete the closing survey can earn an official Future of Music Artist Development Certificate of Completion.</p>
-          <ul><li>Downloadable completion certificate</li><li>Completed digital Artist Workbook</li><li>Personalized 90-day Artist Action Plan</li></ul>
-        </div>
-      </section>
-
-      <section className="artist-final">
-        <div><p>READY TO DEVELOP YOUR ARTISTRY?</p><h2>Find your sound.<br />Build your future.</h2></div>
-        <a className="button artist-button" href="/programs/artist-development/course">Start the open course <Arrow /></a>
-      </section>
-    </PageShell>
-  );
+  return <PageShell active="programs" mainClassName="editorial-page">
+    <section className="editorial-container editorial-feature"><div><p className="editorial-kicker">Open beta · Free · Ages 10–18</p><h1>Artist Development Academy</h1><p className="editorial-lede">A self-paced online program for young singers, rappers, songwriters, producers, and performers. Learn through readings, narration, creative activities, and quizzes.</p><div className="button-row"><a className="button" href="/programs/artist-development/course">Start the open course</a><a className="text-link" href="#curriculum">View the curriculum</a></div></div><aside className="cohort-summary"><p className="editorial-kicker">Learn at your own pace</p><h2>Course information</h2><dl><div><dt>Format</dt><dd>100% online · Self-paced</dd></div><div><dt>Lessons</dt><dd>27 narrated lessons</dd></div><div><dt>Estimated time</dt><dd>4.5 hours</dd></div><div><dt>Access</dt><dd>Phone, tablet, or computer</dd></div></dl><p>No scheduled classes or weekly deadlines. Progress saves on the device you use.</p></aside></section>
+    <section className="editorial-band" id="curriculum"><div className="editorial-container editorial-columns"><div><p className="editorial-kicker">Curriculum</p><h2>Creative practice and industry knowledge.</h2><p>Each module adds work to your Artist Development Portfolio. Start with identity and sound, then explore branding, media, rights, and release planning.</p></div><div className="editorial-list">{modules.map(([number,title,copy])=><article key={number}><span>{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article>)}</div></div></section>
+    <section className="editorial-container editorial-section"><div className="editorial-section-heading"><p className="editorial-kicker">Lesson format</p><h2>Read, listen, practice, and reflect.</h2></div><div className="editorial-grid-three">{lessonSteps.map(([title,copy])=><article key={title}><h3>{title}</h3><p>{copy}</p></article>)}</div></section>
+    <section className="editorial-container editorial-section editorial-columns"><div><p className="editorial-kicker">Final project</p><h2>Your Artist Development Portfolio</h2><p>Build materials to use in future applications, meetings, releases, and recording sessions.</p></div><ul className="portfolio-editorial">{portfolio.map(item=><li key={item}>{item}</li>)}</ul></section>
+    <section className="editorial-container editorial-cta"><div><h2>Complete the course.</h2><p>Finish the modules, meet the quiz requirement, and complete your portfolio and closing survey to earn a certificate. Download your workbook and personal 90-day action plan.</p></div><a className="button" href="/programs/artist-development/course">Start learning</a></section>
+  </PageShell>;
 }

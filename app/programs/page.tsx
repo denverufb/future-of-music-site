@@ -1,16 +1,4 @@
+import { PageShell } from "../components/SiteChrome";
 export default function ProgramsPage() {
-  return (
-    <main className="utility-main">
-      <section className="utility-card">
-        <p className="kicker">Future of Music programs</p>
-        <h1>Choose your pathway.</h1>
-        <p>Explore free music and mentorship opportunities for young people.</p>
-        <div className="action-row" style={{ justifyContent: "center" }}>
-          <a className="btn" href="/programs/dj/">Youth DJ Program</a>
-          <a className="btn" href="/dj-classes/">Free DJ Class</a>
-          <a className="btn btn-secondary" href="/mentorship/">Mentorship Program</a>
-        </div>
-      </section>
-    </main>
-  );
+  return <PageShell active="programs" mainClassName="editorial-page"><section className="editorial-container editorial-section"><p className="editorial-kicker">Future of Music</p><h1>Our programs</h1><div className="editorial-grid-three editorial-section"><article><h3>Youth DJ Program</h3><p>Hands-on music and technology instruction for youth ages 8–18.</p><a className="text-link" href="/programs/dj/">Program details & registration</a></article><article><h3>Mentorship</h3><p>Personal, academic, and career support for students in grades 5–12.</p><a className="text-link" href="/mentorship/">About mentorship</a></article><article><h3>Artist Development Academy</h3><p>Free, self-paced learning for young artists. Open beta.</p><a className="text-link" href="/programs/artist-development/">Explore the academy</a></article></div></section></PageShell>;
 }
