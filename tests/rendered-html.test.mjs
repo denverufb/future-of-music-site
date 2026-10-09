@@ -74,6 +74,8 @@ test("homepage presents the community partners", async () => {
   assert.match(home, /CreatorLaunch/i);
   assert.match(home, /Next Prep/i);
   assert.match(home, /\/partners\/creatorlaunch\.png/i);
+  assert.match(home, /\/partners\/jennings-school-district\.png/i);
+  assert.match(home, /\/partners\/next-prep\.png/i);
 
   const dj = await render("/programs/dj");
   const mentorship = await render("/mentorship");

@@ -114,7 +114,8 @@ a:focus-visible,button:focus-visible,summary:focus-visible { outline:3px solid #
 .editorial-page .asset-gallery-item.is-blank { display:none; }
 .editorial-partners { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin-bottom:24px; }
 .editorial-partners a { padding:24px 0; border-block:var(--line); }
-.editorial-partners img { height:32px; max-width:145px; object-fit:contain; object-position:left; margin-bottom:16px; }
+.editorial-partners .partner-logo { display:flex; align-items:center; height:112px; margin-bottom:20px; }
+.editorial-partners img { display:block; width:auto; height:auto; max-height:100px; max-width:min(100%,240px); object-fit:contain; object-position:left; }
 .editorial-partners h3 { font-size:1.25rem; margin-bottom:12px; }
 .editorial-partners p { margin:0; font-size:.95rem; }
 .editorial-partners a:hover h3 { text-decoration:underline; text-underline-offset:4px; }
