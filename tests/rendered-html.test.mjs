@@ -93,6 +93,7 @@ test("program and donation actions remain available", async () => {
   for (const filename of ["01-program-group.jpg", "02-workshop.jpg", "03-controller-closeup.jpg", "04-students-mixing.jpg", "05-student-laptop.jpg"]) {
     assert.match(dj, new RegExp(`/gallery/dj/${filename.replace(".", "\\.")}`));
   }
+  assert.doesNotMatch(dj, /src="\/gallery\/dj\/[^\"]+\.png"/);
   assert.equal((mentorship.match(/data-gallery-slot="blank\.png"/g) ?? []).length, 0);
 
   const donate = await render("/donate");

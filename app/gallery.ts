@@ -1,4 +1,4 @@
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 type GalleryImage = { src: string; alt: string };
@@ -10,6 +10,8 @@ function makeGallery(program: "dj" | "mentorship"): GalleryImage[] {
   const images = readdirSync(directory, { withFileTypes: true })
     .filter((entry) => entry.isFile() && imagePattern.test(entry.name))
     .map((entry) => entry.name)
+    // Match the published gallery: optimized JPEGs replace same-name PNGs.
+    .filter((name) => !/\.png$/i.test(name) || !existsSync(join(directory, name.replace(/\.png$/i, ".jpg"))))
     .sort((a, b) => a.localeCompare(b))
     .map((name) => ({
       src: `/gallery/${program}/${name}`,
