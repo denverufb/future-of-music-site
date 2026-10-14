@@ -1,5 +1,36 @@
 [
   {
+    "slug": "jennings-afterschool-dj-program",
+    "title": "Future of Music Launches Free Afterschool DJ Program Across Six Jennings Schools",
+    "category": "Program news",
+    "date": "2026-10-13",
+    "author": "Future of Music",
+    "published": true,
+    "excerpt": "Music is the foundation. Leadership, communication, teamwork, and the confidence to try something new are at the heart of our Jennings partnership.",
+    "intro": "Future of Music launched its afterschool DJ program with Jennings School District on Monday, October 12. Over three months, the partnership will reach six district schools and is expected to serve more than 100 young people. Participation is 100% free to students, including equipment access and instruction. Music is the foundation, but the purpose goes beyond learning to DJ. Through hands-on activities, students will practice leadership, communication, and teamwork while building the confidence to try something new.",
+    "image": "jennings-students-controls",
+    "imageAlt": "Jennings students gathered around professional DJ controllers, learning the individual controls with an instructor",
+    "imageCaption": "Jennings students learn the individual controls of a professional DJ controller during a Future of Music session.",
+    "links": [
+      {"label": "Bring a DJ Program to your school", "href": "/programs/dj/"},
+      {"label": "Contact info@fomusic.org", "href": "mailto:info@fomusic.org"}
+    ],
+    "sections": [
+      {
+        "heading": "Learning together through music",
+        "paragraphs": ["Students will learn to select songs, recognize rhythm and tempo, and create transitions using equipment such as the Pioneer DJ DDJ-FLX4. Along the way, they will share equipment, make creative decisions together, and explain their ideas. Building a mix becomes an opportunity to listen, collaborate, and contribute to a shared result. Leadership can mean showing a classmate how a control works, helping a group move forward, or making room for someone else’s input. These everyday interactions are central to what Future of Music wants students to take from the experience."]
+      },
+      {
+        "heading": "Getting comfortable with something new",
+        "paragraphs": ["Trying an unfamiliar skill in front of others can feel intimidating. Our goal is to create an environment where students feel comfortable asking questions, making mistakes, and trying again. Some will be ready to take the controls immediately; others may need time to watch and settle in. No previous DJ experience is needed, and both approaches belong here. Whether or not students continue pursuing music, we want them to leave more comfortable participating, working with others, and taking on their next challenge."]
+      },
+      {
+        "heading": "Thank you, Jennings",
+        "paragraphs": ["A special thank-you to Marlos Reynolds for helping make this partnership possible, and to Jennings School District for welcoming Future of Music into its afterschool programming. We look forward to sharing what students learn and create throughout the program."]
+      }
+    ]
+  },
+  {
     "slug": "inside-the-youth-dj-program",
     "title": "Inside the Youth DJ Program",
     "category": "Program notes",

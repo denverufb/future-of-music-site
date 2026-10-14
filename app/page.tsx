@@ -1,9 +1,11 @@
 import { PageShell } from "./components/SiteChrome";
 import ProgramPhoto from "./components/ProgramPhoto";
 import PartnerCarousel from "./components/PartnerCarousel";
+import BlogAnnouncement from "./components/BlogAnnouncement";
 
 export default function Home() {
   return <PageShell active="home" mainClassName="editorial-page community-home">
+    <BlogAnnouncement />
     <section className="editorial-container home-opening">
       <div><p className="editorial-kicker">Future of Music · St. Louis</p><h1>Learn music.<br /><em>Create together.</em></h1><p className="editorial-lede">A place for young people to try the equipment, find a mentor, and turn their interests into something they can share. Explore our free DJ and mentorship programs.</p><div className="button-row"><a className="button" href="/programs/dj/#registration">Join a free DJ class</a><a className="text-link" href="/about">Get to know us</a></div></div>
       <ProgramPhoto name="student-headphones" alt="A young student using headphones at a DJ controller during a Future of Music class" caption="Youth DJ Program · Hands-on learning" eager />

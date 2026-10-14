@@ -11,6 +11,7 @@ async function render(path = "/") {
 }
 
 const routes = [
+  ["/blog/jennings-afterschool-dj-program", /Future of Music Launches Free Afterschool DJ Program Across Six Jennings Schools/],
   ["/", /Learn music\./i],
   ["/about", /worth passing on\./i],
   ["/programs/dj", /Youth DJ Program/i],
@@ -26,6 +27,14 @@ const routes = [
   ["/blog", /Stories &amp; findings/i],
   ["/blog/inside-the-youth-dj-program", /Inside the Youth DJ Program/i],
 ];
+
+test("Jennings launch article preserves approved facts and student photo", async () => {
+  const html = await render("/blog/jennings-afterschool-dj-program");
+  for (const text of ["Monday, October 12", "more than 100 young people", "100% free", "Marlos Reynolds", "leadership, communication, and teamwork"]) assert.ok(html.includes(text));
+  assert.match(html, /jennings-students-controls-1600\.webp/);
+  assert.match(html, /Jennings students learn the individual controls/);
+  assert.match(await render("/blog"), /href="\/blog\/jennings-afterschool-dj-program\/"/);
+});
 
 test("team directory links to individual biographies in the requested order", async () => {
   const html = await render("/team");

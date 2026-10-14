@@ -114,6 +114,14 @@ a:focus-visible,button:focus-visible,summary:focus-visible { outline:3px solid #
 .editorial-page .asset-gallery-item.is-blank { display:none; }
 .editorial-partners { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; margin-bottom:24px; }
 .editorial-partners a { padding:24px 0; border-block:var(--line); }
+.blog-announcement { position:fixed; right:24px; bottom:24px; z-index:150; width:min(390px,calc(100vw - 32px)); padding:26px; border:1px solid #b9cbe7; border-radius:18px; background:#fff; color:#173d78; box-shadow:0 12px 45px #102b5233; }
+.blog-announcement h2 { font-size:1.45rem; line-height:1.2; letter-spacing:-.02em; margin:12px 0; }
+.blog-announcement p { font-size:1rem; line-height:1.5; margin-bottom:18px; }
+.blog-announcement .editorial-kicker { padding-right:25px; font-size:.8rem; margin:0; }
+.blog-announcement .announcement-close { position:absolute; top:8px; right:8px; width:44px; height:44px; border:0; border-radius:50%; background:transparent; color:#173d78; font-size:1.8rem; cursor:pointer; }
+.blog-announcement .announcement-close:hover { background:#edf3fb; }
+.blog-announcement a:focus-visible,.blog-announcement button:focus-visible { outline:3px solid #2457aa; outline-offset:3px; }
+@media(max-width:700px) { .blog-announcement { right:16px; bottom:max(16px,env(safe-area-inset-bottom)); padding:22px; } }
 .editorial-partners .partner-logo { display:flex; align-items:center; height:112px; margin-bottom:20px; }
 .editorial-partners img { display:block; width:auto; height:auto; max-height:100px; max-width:min(100%,240px); object-fit:contain; object-position:left; }
 .editorial-partners h3 { font-size:1.25rem; margin-bottom:12px; }
@@ -129,6 +137,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible { outline:3px solid #
 .blog-index .text-link { color:var(--blue-dark); }
 .blog-article { max-width:900px; padding-block:32px 60px; }
 .blog-article header { margin-block:30px; max-width:800px; }
+.editorial-page .blog-article h1 { font-size:clamp(2rem,4vw,3.5rem); line-height:1.15; letter-spacing:-.03em; }
 .article-prose { max-width:700px; margin:36px auto; }
 .article-prose section { margin-bottom:32px; }
 .article-prose h2 { font-size:2rem; margin-bottom:18px; }
