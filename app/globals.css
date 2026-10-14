@@ -44,7 +44,7 @@ p { margin-top: 0; }
 .nav-group > summary::-webkit-details-marker { display: none; }
 .nav-group > summary:hover::after, .nav-group > summary:focus-visible::after, .nav-group > summary[aria-current="page"]::after { right: 0; }
 .nav-dropdown { position: absolute; top: calc(100% - 2px); left: 50%; display: grid; width: 300px; padding: 10px; border: var(--line); border-radius: 18px; background: var(--white); box-shadow: 7px 7px 0 var(--ink); opacity: 0; visibility: hidden; transform: translate(-50%, 8px); transition: .18s ease; }
-.nav-group:hover .nav-dropdown, .nav-group:focus-within .nav-dropdown, .nav-group[open] .nav-dropdown { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+.nav-group[open] .nav-dropdown { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
 .nav-dropdown a { display: grid; padding: 12px; border-radius: 10px; font-family: var(--font-display); font-size: 1rem; }
 .nav-dropdown a:hover, .nav-dropdown a:focus-visible { background: var(--yellow); }
 .nav-dropdown a span { font-family: var(--font-body); color: #65636b; font-size: .68rem; letter-spacing: 0; }

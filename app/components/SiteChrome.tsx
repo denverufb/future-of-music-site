@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import NavDropdown from "./NavDropdown";
 
 type NavKey = "home" | "about" | "programs" | "dj-classes" | "team" | "donate" | "blog";
 
@@ -18,21 +19,15 @@ export function SiteHeader({ active }: { active: NavKey }) {
         </a>
 
         <nav className="desktop-nav" aria-label="Primary navigation">
-          <details className="nav-group"><summary aria-current={active === "home" || active === "donate" ? "page" : undefined}>Home <span aria-hidden="true">⌄</span></summary><div className="nav-dropdown"><a href="/">Home</a><a href="/donate">Donate</a></div></details>
-          <details className="nav-group">
-            <summary aria-current={active === "about" || active === "team" ? "page" : undefined}>About <span aria-hidden="true">⌄</span></summary>
-            <div className="nav-dropdown">
+          <NavDropdown label="Home" current={active === "home" || active === "donate"}><a href="/">Home</a><a href="/donate">Donate</a></NavDropdown>
+          <NavDropdown label="About" current={active === "about" || active === "team"}>
               <a href="/about">Our Story</a>
               <a href="/team">Our Team</a>
-            </div>
-          </details>
-          <details className="nav-group">
-            <summary aria-current={active === "programs" ? "page" : undefined}>Programs <span aria-hidden="true">⌄</span></summary>
-            <div className="nav-dropdown">
+          </NavDropdown>
+          <NavDropdown label="Programs" current={active === "programs"}>
               <a href="/programs/dj">Youth DJ Program</a>
               <a href="/mentorship">Mentorship Program</a>
-            </div>
-          </details>
+          </NavDropdown>
           <a href="/blog" aria-current={active === "blog" ? "page" : undefined}>Blog</a>
         </nav>
 
