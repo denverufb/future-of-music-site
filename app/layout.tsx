@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   twitter: { card: "summary_large_image", title: "Future of Music", description: "Young creators. Real futures.", images: ["/og.png"] },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#2146d0" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#242331" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

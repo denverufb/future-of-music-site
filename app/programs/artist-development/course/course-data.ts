@@ -65,7 +65,7 @@ const unsortedCourseModules: CourseModule[] = [
     minutes: 10,
     product: "Starting assessment",
     goal: "Understand the journey, protect your privacy, and record where you are starting.",
-    accent: "#ff4fa3",
+    accent: "#ddca7d",
     lessons: [
       {
         id: "0-1",
@@ -139,7 +139,7 @@ Your work automatically saves in this browser. It is not uploaded to a public pr
     minutes: 45,
     product: "Original Song Seed + Readiness Checklist",
     goal: "Use a repeatable process to develop and revise an original idea, then prepare it for a session or performance.",
-    accent: "#ffd43b",
+    accent: "#e8dba5",
     lessons: [
       {
         id: "3-1",
@@ -250,7 +250,7 @@ For both studio and stage work, professionalism means arriving prepared, respect
     minutes: 30,
     product: "Artist Brand Board",
     goal: "Translate your identity and sound into a clear visual system, story, and communication style.",
-    accent: "#7d67ff",
+    accent: "#cfb58e",
     lessons: [
       {
         id: "4-1",
@@ -331,7 +331,7 @@ Content should help people discover, understand, trust, or act. You do not need 
     minutes: 30,
     product: "Artist Bio + Mock Interview",
     goal: "Explain your story clearly, prepare key messages, answer professionally, and protect appropriate boundaries.",
-    accent: "#ff6d61",
+    accent: "#ddca7d",
     lessons: [
       {
         id: "5-1",
@@ -411,7 +411,7 @@ Before posting, ask: Is it true? Necessary? Respectful? Does it reveal private i
     minutes: 25,
     product: "Artist Identity Card",
     goal: "Define the purpose, values, themes, audience experience, and next goal behind your artistry.",
-    accent: "#c9ff46",
+    accent: "#eee8da",
     lessons: [
       {
         id: "1-1",
@@ -508,7 +508,7 @@ Choose a goal that stretches you without requiring money, connections, or equipm
     minutes: 30,
     product: "Personal Sound Map",
     goal: "Identify the ingredients in your sound, study influences ethically, and test several directions.",
-    accent: "#ff8cc5",
+    accent: "#cfb58e",
     lessons: [
       {
         id: "2-1",
@@ -590,7 +590,7 @@ Choose three to five specific adjectives: conversational, cinematic, playful, in
     minutes: 45,
     product: "Industry Pathway Map",
     goal: "Build a plain-language map of industry roles, career pathways, music rights, agreements, and warning signs.",
-    accent: "#54d5a4",
+    accent: "#e8dba5",
     lessons: [
       {
         id: "6-1",
@@ -693,7 +693,7 @@ Never sign a real agreement as a course exercise. This course provides education
     minutes: 30,
     product: "30-Day Release + Professional Action Plan",
     goal: "Choose an audience goal, prepare release assets, communicate clearly, and protect time, money, and reputation.",
-    accent: "#48a6ff",
+    accent: "#ddca7d",
     lessons: [
       {
         id: "7-1",
@@ -777,7 +777,7 @@ Protect school, family, health, time, and creative energy. You do not need every
     minutes: 30,
     product: "Portfolio, final assessment + reflection",
     goal: "Combine your work, verify core knowledge, measure growth, and unlock your completion certificate.",
-    accent: "#c9ff46",
+    accent: "#eee8da",
     lessons: [
       {
         id: "8-1",

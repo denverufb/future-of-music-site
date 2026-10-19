@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
-import { external, PageShell, ProgramGallery } from "../components/SiteChrome";
-import { mentorshipGalleryImages } from "../gallery";
-export const metadata: Metadata = { title: "Mentorship Program | Future of Music", description: "A three-month peer mentorship program for students in grades 5–12." };
-const pillars = [
-  ["01", "Personal development", "Accountability, leadership, communication, confidence, and goal setting."],
-  ["02", "Academics", "Homework support, academic planning, school progress, and stronger learning habits."],
-  ["03", "Entrepreneurship", "Ideas, branding, professionalism, and guidance from teenage business owners."],
-  ["04", "College & career", "Career exploration, college pathways, networking, and postsecondary decisions."],
-];
+import Script from "next/script";
+import { PageShell } from "../components/SiteChrome";
+
+export const metadata: Metadata = {
+  title: "Mentorship Program | Future of Music",
+  description: "Explore Future of Music mentorship at mentoring.fomusic.org.",
+  alternates: { canonical: "https://mentoring.fomusic.org/" },
+  robots: { index: false, follow: true },
+};
+
 export default function MentorshipPage() {
-  const photos = mentorshipGalleryImages.filter(image => !image.src.endsWith("/blank.png"));
   return <PageShell active="programs" mainClassName="editorial-page">
-    <section className="editorial-container editorial-feature mentorship-opening"><div><p className="editorial-kicker">Grades 5–12 · Three-month program</p><h1>Mentorship Program</h1><p className="editorial-lede">Support with school, personal goals, business ideas, and planning what comes next. Students work with mentors, student business owners, and community partners.</p><div className="button-row"><a className="button" href="https://forms.gle/Gg7yigzM9zTQSEdF6" {...external}>Apply for mentorship</a><a className="text-link" href="#portal">Member portal</a></div></div><aside className="cohort-summary"><p className="editorial-kicker">Fall cohort</p><h2>Program details</h2><dl><div><dt>Dates</dt><dd>October 1 – December 31</dd></div><div><dt>Eligibility</dt><dd>Students in grades 5–12</dd></div><div><dt>Participant stipend</dt><dd>$50 for participating mentees</dd></div></dl><p>Use the application form or contact our team for information about participation and available places.</p></aside></section>
-    <section className="editorial-band"><div className="editorial-container editorial-columns"><div><p className="editorial-kicker">How it works</p><h2>Practical guidance and regular support.</h2><p>Students meet with mentors, set goals, and develop professional skills. The program supports students across four areas.</p></div><div className="editorial-list">{pillars.map(([number,title,copy]) => <article key={number}><span>{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article>)}</div></div></section>
-    <section className="editorial-container editorial-section"><div className="editorial-section-heading"><p className="editorial-kicker">Cohort experiences</p><h2>Learning alongside other young people.</h2></div><div className="editorial-grid-three"><article><h3>Mentee Day events</h3><p>Activities that help students get to know one another and participate as a group.</p></article><article><h3>Community service</h3><p>Opportunities to practice leadership and contribute to the local community.</p></article><article><h3>Networking</h3><p>Meet community leaders, young business owners, mentors, and peers.</p></article></div></section>
-    {photos.length > 0 && <ProgramGallery title="Mentorship moments" images={photos} />}
-    <section className="editorial-container editorial-section editorial-columns" id="portal"><div><p className="editorial-kicker">Current members</p><h2>Mentorship portal</h2><p>Use the current portal for active cohort tools and tracking. Older cohort resources remain available through the legacy portal.</p></div><div className="portal-editorial"><article><h3>Current portal</h3><p>For current mentees, mentors, and staff.</p><a className="button" href="https://fomusic.org/portal-v2/" {...external}>Open current portal</a></article><article><h3>Legacy portal</h3><p>Historical resources for older cohorts.</p><a className="text-link" href="https://mentee.fomusic.org/" {...external}>Open legacy portal</a></article></div></section>
-    <section className="editorial-container editorial-cta"><div><p className="editorial-kicker">Program contact</p><h2>Qwentin Blassingame</h2><p>Contact Qwentin about school referrals, partnerships, mentor support, or participation.</p></div><a className="button" href="mailto:qwentin@fomusic.org">Email Qwentin</a></section>
+    <Script id="mentorship-redirect" strategy="beforeInteractive">{`window.location.replace('https://mentoring.fomusic.org/');`}</Script>
+    <section className="editorial-container mentorship-redirect">
+      <p className="editorial-kicker">Future of Music</p>
+      <h1>Mentorship has a new home.</h1>
+      <p>Visit our dedicated Mentorship Program website for program information, applications, and participant access.</p>
+      <a className="button" href="https://mentoring.fomusic.org/">Continue to mentorship ↗</a>
+    </section>
   </PageShell>;
 }

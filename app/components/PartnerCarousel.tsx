@@ -6,7 +6,7 @@ const partners = [
 export default function PartnerCarousel() {
   return <section className="editorial-container editorial-section" aria-labelledby="partner-heading">
     <div className="editorial-section-heading"><p className="editorial-kicker">Community partners</p><h2 id="partner-heading">Working with our community.</h2><p>Schools and youth-serving organizations help bring instruction, equipment, and mentorship to students.</p></div>
-    <div className="editorial-partners">{partners.map(partner=><a href={partner.href} target="_blank" rel="noopener noreferrer" key={partner.name}><div className="partner-logo"><img src={partner.image} alt="" loading="lazy" /></div><h3>{partner.name}</h3><p>{partner.description}</p></a>)}</div>
+    <div className="editorial-partners">{partners.map(partner=><a href={partner.href} target="_blank" rel="noopener noreferrer" key={partner.name}><div className={`partner-logo${partner.name === "Next Prep" ? " next-prep" : ""}`}><img src={partner.image} alt={`${partner.name} logo`} loading="lazy" /></div><h3>{partner.name}</h3></a>)}</div>
     <a className="text-link" href="mailto:info@fomusic.org?subject=Future%20of%20Music%20Partnership">Ask about a partnership</a>
   </section>;
 }

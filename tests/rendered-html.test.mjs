@@ -62,18 +62,20 @@ for (const [path, pageText] of routes) {
 
 test("navigation links directly to every main destination", async () => {
   const html = await render();
-  for (const href of ["/about", "/programs/dj", "/mentorship", "/team", "/donate", "/blog"]) {
+  for (const href of ["/about", "/programs/dj", "https://mentoring.fomusic.org", "/team", "/donate", "/blog", "/programs/artist-development"]) {
     assert.match(html, new RegExp(`href=\\"${href.replaceAll("/", "\\/")}\\"`));
   }
   assert.doesNotMatch(html, /href="\/programs"/);
   assert.doesNotMatch(html, /href="\/programs\/mentorship"/);
 });
 
-test("the former mentorship URL redirects to the short address", async () => {
-  const legacy = await render("/programs/mentorship");
-  assert.match(legacy, /window\.location\.replace\(['"]\/mentorship\/['"]\)/i);
-  assert.match(legacy, /href="\/mentorship\/"/i);
-  assert.doesNotMatch(legacy, /Mentorship that feels/i);
+test("both former mentorship URLs redirect to the dedicated mentoring site", async () => {
+  for (const route of ["/mentorship", "/programs/mentorship"]) {
+    const legacy = await render(route);
+    assert.match(legacy, /window\.location\.replace\(['"]https:\/\/mentoring\.fomusic\.org\/['"]\)/i);
+    assert.match(legacy, /href="https:\/\/mentoring\.fomusic\.org\/"/i);
+    assert.doesNotMatch(legacy, /forms\.gle|portal-v2/i);
+  }
 });
 
 test("homepage presents the community partners", async () => {
@@ -95,8 +97,7 @@ test("homepage presents the community partners", async () => {
 
 test("program and donation actions remain available", async () => {
   const mentorship = await render("/mentorship");
-  assert.match(mentorship, /forms\.gle\/Gg7yigzM9zTQSEdF6/);
-  assert.match(mentorship, /fomusic\.org\/portal-v2\//);
+  assert.match(mentorship, /https:\/\/mentoring\.fomusic\.org\//);
 
   const dj = await render("/programs/dj");
   assert.match(dj, /Become a DJ Program partner/i);
@@ -155,6 +156,17 @@ test("footer includes the embedded Candid transparency seal", async () => {
   const html = await render();
   assert.match(html, /widgets\.guidestar\.org\/prod\/v1\/pdp\/transparency-seal\/16383723\/svg/);
   assert.doesNotMatch(html, /qwentin@fomusic\.org/);
+});
+
+test("site-wide palette and open layouts replace the rounded promotional panels", async () => {
+  const css = await readFile(new URL("../app/editorial.css", import.meta.url), "utf8");
+  for (const color of ["#242331", "#ddca7d", "#a27035"]) assert.ok(css.includes(color));
+  assert.match(css, /\.partner-logo \{[^}]*border-radius:0;[^}]*box-shadow:none/);
+  assert.match(css, /\.partner-logo\.next-prep \{ background:#202a54/);
+  assert.match(css, /\.mobile-menu nav \{[^}]*border-radius:0/);
+  const home = await render();
+  assert.doesNotMatch(home, /href="\/mentorship\/?"/);
+  assert.match(home, /class="program-story"/);
 });
 
 test("About tells the story with the six supplied photos in their requested sections", async () => {
