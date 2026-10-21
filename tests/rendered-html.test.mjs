@@ -11,6 +11,7 @@ async function render(path = "/") {
 }
 
 const routes = [
+  ["/finance-hub", /FOM Finance Hub/],
   ["/grant-tracker", /Grant Tracker/],
   ["/blog/jennings-afterschool-dj-program", /Future of Music Launches Free Afterschool DJ Program Across Six Jennings Schools/],
   ["/", /Learn music\./i],
@@ -34,7 +35,11 @@ test("grant workspace does not include analytics scripts or private records in i
   assert.match(html, /noindex/);
   assert.doesNotMatch(html, /<script[^>]+src="https:\/\/www\.googletagmanager/);
   assert.doesNotMatch(html, /aereon@fomusic\.org|DEMO ·|Sample Community Foundation/);
-  assert.match(await render(), /href="\/grant-tracker\/"/);
+  assert.match(await render(), /href="\/finance-hub\/"/);
+  const finance = await render("/finance-hub");
+  assert.match(finance, /noindex/);
+  assert.doesNotMatch(finance, /<script[^>]+src="https:\/\/www\.googletagmanager/);
+  assert.doesNotMatch(finance, /workbook-import|finance-private|Sample Community Foundation/);
 });
 
 test("Jennings launch article preserves approved facts and student photo", async () => {

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 export default function SiteAnalytics() {
   const pathname = usePathname();
   // Do not load analytics or advertising scripts in the private workspace.
-  if (pathname?.startsWith("/grant-tracker")) return null;
+  if (pathname?.startsWith("/grant-tracker") || pathname?.startsWith("/finance-hub")) return null;
   return <><Script async src="https://www.googletagmanager.com/gtag/js?id=G-Q9CN5F5MQ6" /><Script id="future-of-music-analytics" strategy="afterInteractive">{`
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}

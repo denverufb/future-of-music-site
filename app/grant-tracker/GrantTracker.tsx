@@ -5,9 +5,10 @@ import type { Session } from "@supabase/supabase-js";
 import { getClient } from "./client";
 import { dateLabel, emptyGrant, grantsCsv, money, remindersFor, safeUrl, statuses, todayInChicago, validateGrant, type Grant, type GrantDraft, type Task } from "./model";
 import styles from "./tracker.module.css";
+import FinanceWorkspace from './FinanceWorkspace';
 
 type Activity = { id: string; action: string; created_at: string };
-type Tab = "overview" | "grants" | "deadlines";
+type Tab = "overview" | "grants" | "deadlines" | "finance";
 type Role = "owner" | "viewer";
 
 function errorText(error: unknown) {
@@ -46,7 +47,9 @@ export default function GrantTracker() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useState<Tab>("finance");
+  const [financeDirty, setFinanceDirty] = useState(false);
+  const [financeBusy, setFinanceBusy] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All statuses");
   const [showArchived, setShowArchived] = useState(false);
@@ -79,7 +82,7 @@ export default function GrantTracker() {
         if (!value) {
           generation.current++; activityFor.current = null;
           setRole(null); setGrants([]); setTasks([]); setPanel(null); setDraft(emptyGrant()); setDirty(false); setActivity([]); setPasswordPanel(false);
-          setSearch(""); setStatusFilter("All statuses"); setShowArchived(false); setSort("deadline"); setTab("overview"); setTaskName(""); setTaskDate(""); setNotice(""); setError("");
+          setSearch(""); setStatusFilter("All statuses"); setShowArchived(false); setSort("deadline"); setTab("finance"); setTaskName(""); setTaskDate(""); setNotice(""); setError("");
         }
       });
       return () => { mounted = false; data.subscription.unsubscribe(); };
@@ -108,11 +111,11 @@ export default function GrantTracker() {
     return () => clearInterval(timer);
   }, []);
   useEffect(() => {
-    if (!dirty) return;
+    if (!dirty && !financeDirty) return;
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [dirty]);
+  }, [dirty, financeDirty]);
   useEffect(() => { if (panel) heading.current?.focus(); }, [panel]);
   useEffect(() => {
     if (selected && !editing) { setDraft(selected); setBaseVersion(selected.updated_at); }
@@ -126,7 +129,7 @@ export default function GrantTracker() {
     setActivityError(issue ? "Recent activity could not be loaded." : "");
     setActivity((data || []) as Activity[]);
   }
-  function canLeave() { return !dirty || window.confirm("Discard your unsaved changes?"); }
+  function canLeave() { return !financeBusy && (!(dirty || financeDirty) || window.confirm("Discard your unsaved changes?")); }
   function openGrant(grant?: Grant) {
     if (!canLeave()) return;
     setDraft(grant ? { ...emptyGrant(), ...grant, links: grant.links.map(l => ({ ...l })) } : emptyGrant());
@@ -214,18 +217,18 @@ export default function GrantTracker() {
   const remindersList = (list: typeof reminders) => list.length ? <ul className={styles.reminders}>{list.map(r => <li key={r.id}><div><span className={r.days < 0 ? styles.overdue : styles.eyebrow}>{r.kind} · {r.days < 0 ? `${Math.abs(r.days)} days overdue` : r.days === 0 ? "Today" : `In ${r.days} day${r.days === 1 ? "" : "s"}`}</span><button className={styles.textButton} onClick={() => openGrant(grants.find(g => g.id === r.grantId))}>{r.grantTitle}</button><p>{r.title}</p></div><time dateTime={r.date}>{dateLabel(r.date)}</time></li>)}</ul> : <p className={styles.emptySmall}>Nothing due here. Add dates to your grants or tasks to see reminders.</p>;
 
   return <div className={styles.app}>
-    <a className="skip-link" href="#main-content">Skip to grant workspace</a>
-    <header className={styles.header}><a href="/" aria-label="Future of Music home"><img src="/images/logo.png" alt="Future of Music" /></a><span>Grant workspace</span><a href="/">Back to website ↗</a></header>
+    <a className="skip-link" href="#main-content">Skip to finance workspace</a>
+    <header className={styles.header}><a href="/" aria-label="Future of Music home"><img src="/images/logo.png" alt="Future of Music" /></a><span>FOM Finance Hub</span><a href="/">Back to website ↗</a></header>
     <main id="main-content" className={styles.main}>
       {!authReady ? <p role="status">Checking your session…</p> : !session ? <div className={styles.loginLayout}>
-        <section className={styles.loginIntro}><p className={styles.eyebrow}>FUTURE OF MUSIC · PRIVATE WORKSPACE</p><h1>More room<br />for what’s next.</h1><p>A clear view of the funding that supports our music, mentorship, and youth programs.</p><div className={styles.loginFeatures}><span>01 / Opportunities</span><span>02 / Applications</span><span>03 / Awards & reporting</span></div><p className={styles.muted}>For authorized FOM users only.</p></section>
-        <section className={styles.loginForm}><p className={styles.eyebrow}>SECURE ACCESS</p><h2>Sign in to your tracker.</h2><p>Your login determines whether you can edit or only view records.</p>{alert}<LoginForm onError={setError} busy={busy} setBusy={setBusy} /><p className={styles.small}>Need access or a password reset? Contact the workspace owner. There is no public registration.</p></section>
+        <section className={styles.loginIntro}><p className={styles.eyebrow}>FUTURE OF MUSIC · PRIVATE WORKSPACE</p><h1>More room<br />for what’s next.</h1><p>A clear view of the funding that supports our music, mentorship, and youth programs.</p><div className={styles.loginFeatures}><span>01 / Revenue & purchases</span><span>02 / Budgets & reports</span><span>03 / Grants & deadlines</span></div><p className={styles.muted}>For authorized FOM users only.</p></section>
+        <section className={styles.loginForm}><p className={styles.eyebrow}>SECURE ACCESS</p><h2>Sign in to Finance Hub.</h2><p>Your login determines whether you can edit or only view records.</p>{alert}<LoginForm onError={setError} busy={busy} setBusy={setBusy} /><p className={styles.small}>Need access or a password reset? Contact the workspace owner. There is no public registration.</p></section>
       </div> : <>
-        <div className={styles.workspaceHeading}><div><p className={styles.eyebrow}>FUTURE OF MUSIC / FUNDING</p><h1>Grant tracker</h1><p>{session.user.email} <span className={styles.badge}>{role === "owner" ? "Owner · can edit" : role === "viewer" ? "View only" : "Checking access"}</span></p></div><div className={styles.actions}><button onClick={() => { if (canLeave()) { setPanel(null); setDirty(false); setPasswordPanel(!passwordPanel); } }} disabled={busy}>Change password</button><button onClick={signOut} disabled={busy}>Sign out</button></div></div>
+        <div className={styles.workspaceHeading}><div><p className={styles.eyebrow}>FUTURE OF MUSIC / GRANTS & FINANCES</p><h1>FOM Finance Hub</h1><p>{session.user.email} <span className={styles.badge}>{role === "owner" ? "Owner · can edit" : role === "viewer" ? "View only" : "Checking access"}</span></p></div><div className={styles.actions}><button onClick={() => { if (canLeave()) { setPanel(null); setDirty(false); setPasswordPanel(!passwordPanel); } }} disabled={busy || financeBusy}>Change password</button><button onClick={signOut} disabled={busy || financeBusy}>Sign out</button></div></div>
         {alert}
         {passwordPanel ? <PasswordForm onDone={() => { setPasswordPanel(false); setNotice("Password updated."); }} onCancel={() => setPasswordPanel(false)} onError={setError} /> : <>
           {!role ? <section className={styles.empty}><h2>{loading ? "Opening your workspace…" : "Access is not ready yet."}</h2><p>{loading ? "Loading your saved grants securely." : "Your account and private database must be set up before grant records can be opened."}</p><button onClick={() => void load()} disabled={loading}>Check again</button></section> : <>
-            <nav className={styles.tabs} aria-label="Grant workspace"><button aria-current={!panel && tab === "overview" ? "page" : undefined} onClick={() => switchTab("overview")}>Overview</button><button aria-current={!panel && tab === "grants" ? "page" : undefined} onClick={() => switchTab("grants")}>All grants <span>{activeGrants.length}</span></button><button aria-current={!panel && tab === "deadlines" ? "page" : undefined} onClick={() => switchTab("deadlines")}>Deadlines {overdue.length > 0 && <span>{overdue.length} overdue</span>}</button><button disabled={busy || loading || dirty} onClick={() => void load()}>{loading ? "Refreshing…" : "Refresh"}</button></nav>
+            <nav className={styles.tabs} aria-label="Finance hub"><button aria-current={!panel && tab === "finance" ? "page" : undefined} onClick={() => switchTab("finance")}>Finances</button><button aria-current={!panel && tab === "overview" ? "page" : undefined} onClick={() => switchTab("overview")}>Grant overview</button><button aria-current={!panel && tab === "grants" ? "page" : undefined} onClick={() => switchTab("grants")}>All grants <span>{activeGrants.length}</span></button><button aria-current={!panel && tab === "deadlines" ? "page" : undefined} onClick={() => switchTab("deadlines")}>Deadlines {overdue.length > 0 && <span>{overdue.length} overdue</span>}</button><button disabled={busy || financeBusy || loading || dirty || financeDirty} onClick={() => void load()}>{loading ? "Refreshing…" : "Refresh grants"}</button></nav>
             {panel ? <section>
               <div className={styles.detailHeading}><div><button className={styles.textButton} onClick={() => switchTab("grants")}>← Back to grants</button><h2 ref={heading} tabIndex={-1}>{panel === "new" ? "New grant" : selected?.title || "Grant details"}</h2>{selected?.archived_at && <p className={styles.badge}>Archived</p>}</div><div className={styles.actions}>{isOwner && !editing && <button className={styles.primary} onClick={() => { if (selected) { setDraft(selected); setBaseVersion(selected.updated_at); } setEditing(true); }}>Edit grant</button>}{isOwner && selected && <button disabled={busy} onClick={archive}>{selected.archived_at ? "Restore grant" : "Archive grant"}</button>}</div></div>
               {!editing && selected && <div className={styles.resourceBar}>{selected.website_url && <Resource href={selected.website_url}>Funder website</Resource>}{selected.application_url && <Resource href={selected.application_url}>Application portal</Resource>}{selected.links.map((l, i) => <Resource href={l.url} key={i}>{l.label}</Resource>)}</div>}
@@ -247,20 +250,20 @@ export default function GrantTracker() {
                 {editing && isOwner && <div className={styles.saveBar}><span>{dirty ? "Unsaved changes" : "Ready to edit"}</span><button type="button" disabled={busy} onClick={() => { if (canLeave()) { if (selected) { setDraft(selected); setEditing(false); setDirty(false); } else switchTab("grants"); } }}>Cancel</button><button className={styles.primary} disabled={busy} type="submit">{busy ? "Saving…" : "Save grant"}</button></div>}
               </form>
               {selected && <div className={styles.detailBottom}><section><h3>Tasks & follow-up</h3><p className={styles.small}>Add a task for each extra reporting date or follow-up.</p><ul className={styles.taskList}>{tasks.filter(t => t.grant_id === selected.id).sort((a, b) => Number(a.completed) - Number(b.completed) || (a.due_on || "9999").localeCompare(b.due_on || "9999")).map(task => <li key={task.id}><label><input type="checkbox" checked={task.completed} disabled={!isOwner || busy} onChange={() => void taskAction(task)} /><span className={task.completed ? styles.completed : undefined}>{task.title}<small>{task.due_on ? dateLabel(task.due_on) : "No due date"}</small></span></label>{isOwner && <button disabled={busy} onClick={() => void taskAction(task, true)} aria-label={`Remove task: ${task.title}`}>×</button>}</li>)}</ul>{!tasks.some(t => t.grant_id === selected.id) && <p className={styles.emptySmall}>No tasks added yet.</p>}{isOwner && <form className={styles.taskForm} onSubmit={e => { e.preventDefault(); void taskAction(); }}><label>New task<input required maxLength={300} value={taskName} onChange={e => setTaskName(e.target.value)} /></label><label>Due date<input type="date" value={taskDate} onInput={e => setTaskDate(e.currentTarget.value)} /></label><button className={styles.primary} disabled={busy}>Add task</button></form>}</section><section><h3>Recent activity</h3>{activityError && <p role="status">{activityError}</p>}<ul className={styles.activity}>{activity.map(a => <li key={a.id}>{a.action}<time>{new Date(a.created_at).toLocaleString("en-US", { timeZone: "America/Chicago", dateStyle: "medium", timeStyle: "short" })} CT</time></li>)}</ul><p className={styles.small}>Showing the latest 30 changes.</p></section></div>}
-            </section> : tab === "overview" ? <>
+            </section> : tab === "finance" ? <FinanceWorkspace key={userId} isOwner={isOwner} grants={grants} tasks={tasks} onDirtyChange={setFinanceDirty} onBusyChange={setFinanceBusy} onOpenGrant={openGrant} /> : tab === "overview" ? <>
               <section className={styles.overviewIntro}><div><h2>Your funding, in focus.</h2><p>One place to follow opportunities from the first idea to the final report.</p></div>{isOwner && <button className={styles.primary} onClick={() => openGrant()}>+ Add a grant</button>}</section>
               <section className={styles.stats} aria-label="Funding summary"><div><span>Active opportunities</span><strong>{activeGrants.filter(g => ["Researching", "Preparing", "Submitted"].includes(g.status)).length}</strong><small>Researching, preparing & submitted</small></div><div><span>Requested · in progress</span><strong>{money(sum("requested_amount", activeGrants.filter(g => ["Preparing", "Submitted"].includes(g.status))))}</strong><small>Preparing & submitted applications</small></div><div><span>Awarded</span><strong>{money(sum("awarded_amount", activeGrants.filter(g => g.status === "Awarded")))}</strong><small>Active awarded grants</small></div><div><span>Received</span><strong>{money(sum("received_amount", activeGrants.filter(g => g.status === "Awarded")))}</strong><small>Recorded payments on awarded grants</small></div></section>
               {!activeGrants.length ? <section className={styles.empty}><span className={styles.eyebrow}>A CLEAR START</span><h2>Your next opportunity starts here.</h2><p>{isOwner ? "Add a grant you’re researching, an application underway, or an award you’re managing." : "The owner hasn’t added any active grants yet."}</p>{isOwner && <button className={styles.primary} onClick={() => openGrant()}>Add your first grant</button>}</section> : <div className={styles.overviewColumns}><section><div className={styles.sectionTitle}><h3>Needs attention</h3><span>{overdue.length} overdue</span></div>{remindersList(overdue.slice(0, 8))}{overdue.length > 8 && <button onClick={() => switchTab("deadlines")}>View all overdue items</button>}</section><section><div className={styles.sectionTitle}><h3>Next 30 days</h3><button className={styles.textButton} onClick={() => switchTab("deadlines")}>All dates →</button></div>{remindersList(upcoming.slice(0, 8))}</section></div>}
               <section className={styles.pipeline}><h3>Application progress</h3><div>{statuses.map(s => <button key={s} onClick={() => { setStatusFilter(s); setShowArchived(false); switchTab("grants"); }}><strong>{activeGrants.filter(g => g.status === s).length}</strong><span>{s}</span></button>)}</div></section>
             </> : tab === "grants" ? <>
-              <div className={styles.overviewIntro}><div><h2>{showArchived ? "Archived grants" : "All grants"}</h2><p>{filtered.length} {filtered.length === 1 ? "record" : "records"} · Amounts in USD</p></div><div className={styles.actions}><button onClick={() => download(grantsCsv(filtered), `fom-grants-${today}.csv`, "text/csv;charset=utf-8")}>Export this list</button><button onClick={() => download(JSON.stringify({ version: 1, exported_at: new Date().toISOString(), organization: "Future of Music", grants, tasks }, null, 2), `fom-grant-backup-${today}.json`, "application/json")}>Download full backup</button>{isOwner && <button className={styles.primary} onClick={() => openGrant()}>+ Add a grant</button>}</div></div>
+              <div className={styles.overviewIntro}><div><h2>{showArchived ? "Archived grants" : "All grants"}</h2><p>{filtered.length} {filtered.length === 1 ? "record" : "records"} · Amounts in USD</p></div><div className={styles.actions}><button onClick={() => download(grantsCsv(filtered), `fom-grants-${today}.csv`, "text/csv;charset=utf-8")}>Export this list</button><button onClick={() => download(JSON.stringify({ version: 1, exported_at: new Date().toISOString(), organization: "Future of Music", grants, tasks }, null, 2), `fom-grant-backup-${today}.json`, "application/json")}>Download grant-only backup</button>{isOwner && <button className={styles.primary} onClick={() => openGrant()}>+ Add a grant</button>}</div></div>
               <div className={styles.filters}><label>Search<input type="search" placeholder="Grant, funder, program, notes…" value={search} onChange={e => setSearch(e.target.value)} /></label><label>Status<select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}><option>All statuses</option>{statuses.map(s => <option key={s}>{s}</option>)}</select></label><label>Sort by<select value={sort} onChange={e => setSort(e.target.value)}><option value="deadline">Application deadline</option><option value="name">Grant name</option><option value="amount">Requested amount</option><option value="updated">Last updated</option></select></label><label className={styles.checkLabel}><input type="checkbox" checked={showArchived} onChange={e => setShowArchived(e.target.checked)} />Archive</label></div>
               <div className={styles.tableWrap}><table><caption className={styles.srOnly}>Grant records. Select a grant name to open the full record.</caption><thead><tr><th scope="col">Grant / funder</th><th scope="col">Status</th><th scope="col">Requested</th><th scope="col">Awarded</th><th scope="col">Deadline</th></tr></thead><tbody>{filtered.map(g => <tr key={g.id}><td><button className={styles.textButton} onClick={() => openGrant(g)}>{g.title}</button><small>{g.funder}{g.program ? ` · ${g.program}` : ""}</small></td><td><span className={styles.status} data-status={g.status}>{g.status}</span></td><td>{money(g.requested_amount)}</td><td>{money(g.awarded_amount)}</td><td>{dateLabel(g.deadline)}</td></tr>)}</tbody></table></div>{!filtered.length && <div className={styles.empty}><h3>No grants to show.</h3><p>{search || statusFilter !== "All statuses" ? "Try another search or status filter." : showArchived ? "Archived grants will appear here." : "Add your first grant to get started."}</p></div>}
             </> : <><div className={styles.overviewIntro}><div><h2>Deadlines & reminders</h2><p>Application deadlines, expected decisions, reports, and unfinished tasks.</p></div></div><div className={styles.deadlineNote}>Reminders update while this page is open. No emails or background notifications are sent. Dates use Central Time; check the funder’s exact cutoff in the grant record.</div>{remindersList(reminders)}</>}
           </>}
         </>}
       </>}
-    </main><footer className={styles.footer}><span>Future of Music · Private grant workspace</span><span>Keep exported files and login details private.</span></footer>
+    </main><footer className={styles.footer}><span>Future of Music · Private finance workspace</span><span>Keep exported files and login details private.</span></footer>
   </div>;
 }
 

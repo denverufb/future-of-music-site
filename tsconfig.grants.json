@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "incremental": false },
-  "include": ["next-env.d.ts", "app/grant-tracker/**/*.ts", "app/grant-tracker/**/*.tsx", "app/components/SiteAnalytics.tsx"],
+  "compilerOptions": { "incremental": false, "allowImportingTsExtensions": true },
+  "include": ["next-env.d.ts", "app/grant-tracker/**/*.ts", "app/grant-tracker/**/*.tsx", "app/finance-hub/**/*.tsx", "app/components/SiteAnalytics.tsx"],
   "exclude": ["node_modules", "examples", "db", "worker", "build"]
 }

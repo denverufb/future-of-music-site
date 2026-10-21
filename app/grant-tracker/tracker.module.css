@@ -129,3 +129,26 @@
 @media(max-width:1000px) { .loginIntro,.loginForm { padding:38px 28px; } .stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .stats > div:nth-child(3) { padding-left:0; border-top:1px solid var(--line); } .stats > div:nth-child(4) { border-top:1px solid var(--line); } .stats > div:nth-child(2) { border-right:0; } .overviewColumns,.detailBottom { gap:30px; } .overviewIntro { align-items:flex-start; } .formGridThree { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:700px) { .header { height:72px; padding:0 14px; gap:8px; } .header > span { display:none; } .main { padding:28px 18px 48px; } .loginLayout { grid-template-columns:1fr; margin:0; } .loginIntro { padding:30px 24px; } .loginIntro .eyebrow { margin-bottom:20px; } .loginIntro h1 { font-size:44px; } .loginFeatures { margin:22px 0; gap:6px; } .loginForm { padding:30px 24px; } .workspaceHeading,.overviewIntro,.detailHeading { flex-direction:column; align-items:flex-start; gap:20px; } .workspaceHeading .badge { display:block; margin:8px 0 0; width:fit-content; } .tabs { gap:10px; flex-wrap:wrap; } .app .tabs button { font-size:12px; padding:12px 0; } .tabs span { display:none; } .overviewColumns,.detailBottom { grid-template-columns:1fr; } .stats > div { padding:20px 12px; } .stats strong { font-size:26px; } .pipeline > div { grid-template-columns:repeat(3,minmax(0,1fr)); } .pipeline button:nth-child(-n+3) { border-bottom:1px solid var(--line); } .filters { grid-template-columns:1fr 1fr; } .filters > label:first-child { grid-column:1/-1; } .formGrid,.formGridThree { grid-template-columns:1fr; gap:18px; } .linkRow { grid-template-columns:1fr; } .linkRow button { justify-self:start; } .saveBar { padding:14px 8px; gap:8px; flex-wrap:wrap; } .saveBar > span { flex-basis:100%; } .taskForm { grid-template-columns:1fr; } .reminders li { align-items:flex-start; gap:14px; } .reminders time { max-width:85px; text-align:right; } .footer { flex-direction:column; gap:6px; padding:22px 18px; } }
 @media(prefers-reduced-motion:reduce) { .app * { transition:none!important; } }
+.financeTop { display:flex; justify-content:space-between; align-items:center; gap:24px; margin:0 0 24px; }
+.financeTop h2 { margin:12px 0; }
+.financeTop > label { min-width:160px; }
+.financeNav { display:flex; flex-wrap:wrap; gap:10px; padding-bottom:22px; border-bottom:1px solid var(--line); }
+.financeNav button[aria-current] { background:var(--ink);color:white; }
+.financeColumns { display:grid;grid-template-columns:1fr 1fr;gap:32px;margin:36px 0; }
+.finance table caption { text-align:left;font:24px Georgia,serif;padding:12px 0; }
+.finance table td { padding:14px 10px; }
+.finance table td:first-child { min-width:180px; }
+.finance table td:nth-child(n+2) { font-variant-numeric:tabular-nums; }
+.finance table tfoot td { border-top:2px solid var(--ink);font-size:12px;font-weight:600; }
+.financeSection { margin:40px 0; }
+.financeSection > .small { margin:14px 0;max-width:800px; }
+.financeFacts { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding-bottom:24px; }
+.financeFacts p { font-size:12px;color:#6c6570; }
+.financeFacts strong { display:block;font-size:20px;color:var(--ink);font-weight:500; }
+.financeFilters { display:grid;grid-template-columns:2fr 1fr 1.3fr;gap:16px;margin-bottom:24px; }
+.financeChecks { display:flex;flex-wrap:wrap;gap:24px;margin:24px 0; }
+.finance dl { margin:12px 0; }
+.finance dl > div { border-bottom:1px solid var(--line);padding:8px 0;display:grid;grid-template-columns:140px 1fr;gap:15px; }
+.finance dt { text-transform:capitalize;font-weight:600; }.finance dd { margin:0;overflow-wrap:anywhere; }
+@media(max-width:1050px){.financeColumns { grid-template-columns:1fr; }}
+@media(max-width:700px){.financeTop{align-items:flex-start;flex-direction:column;}.financeFacts{grid-template-columns:repeat(2,minmax(0,1fr));}.financeFilters{grid-template-columns:1fr 1fr;}.financeFilters label:first-child{grid-column:1/-1;}.financeNav button{font-size:12px;padding:9px;}.finance dl>div{grid-template-columns:1fr;gap:4px;}}

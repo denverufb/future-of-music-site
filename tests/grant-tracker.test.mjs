@@ -51,8 +51,9 @@ test('tracker route is private by policy, noindexed, and linked in footer', asyn
   const analytics = await readFile(new URL('../app/components/SiteAnalytics.tsx',import.meta.url),'utf8');
   const client = await readFile(new URL('../app/grant-tracker/client.ts',import.meta.url),'utf8');
   assert.match(page,/index: false, follow: false/);
-  assert.match(chrome,/href="\/grant-tracker\/"/);
-  assert.match(analytics,/startsWith\("\/grant-tracker"\)\) return null/);
+  assert.match(chrome,/href="\/finance-hub\/"/);
+  assert.match(analytics,/startsWith\("\/grant-tracker"\)/);
+  assert.match(analytics,/startsWith\("\/finance-hub"\)/);
   assert.match(client,/storage: window.sessionStorage/);
   assert.doesNotMatch(client,/service_role|sb_secret_/);
 });

@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { emptyGrant, todayInChicago } from '../app/grant-tracker/model.ts';
+import { emptyTransaction } from '../app/grant-tracker/finance-model.ts';
 
 const port = 3077;
 const root = resolve('out');
@@ -19,6 +20,12 @@ let records = [
 ];
 let tasks = [];
 let activity = [];
+let transactions = [
+  {...emptyTransaction('revenue',today),id:'11111111-1111-4111-8111-111111111111',description:'DEMO · Community award payment',counterparty:'Example Arts Fund',category:'Grants',program:'Youth DJ Program',amount:4000,restricted:true,grant_id:'55555555-5555-4555-8555-555555555555',created_at:stamp(),updated_at:stamp(),voided_at:null,source_label:'',source_key:null},
+  {...emptyTransaction('expense',today),id:'22222222-2222-4222-8222-222222222222',description:'DEMO · Workshop supplies',counterparty:'Example Store',category:'Program Supplies',program:'Youth DJ Program',amount:250,paid:true,created_at:stamp(),updated_at:stamp(),voided_at:null,source_label:'',source_key:null},
+];
+let budgets=[{id:'44444444-4444-4444-8444-444444444444',year:Number(today.slice(0,4)),kind:'expense',category:'Program Supplies',amount:1000,notes:'Fictional budget for local testing.',created_at:stamp(),updated_at:stamp()}];
+let financeActivity=[];
 const json = (res, body, code=200) => { res.writeHead(code, {'content-type':'application/json'}); res.end(JSON.stringify(body)); };
 const readBody = async req => { let text=''; for await (const chunk of req) text+=chunk; return text ? JSON.parse(text) : {}; };
 createServer(async (req,res) => {
@@ -38,14 +45,15 @@ createServer(async (req,res) => {
     if(url.pathname.startsWith('/rest/v1/')) {
       const table=url.pathname.split('/').pop();
       if(table==='grant_members') return json(res,role==='unlisted' ? null : {role});
-      let rows=table==='grants' ? records : table==='grant_tasks' ? tasks : activity;
-      const matches=row=>['id','grant_id','updated_at'].every(key=>!url.searchParams.has(key)||row[key]===url.searchParams.get(key).replace(/^eq\./,''));
+      let rows=table==='grants' ? records : table==='grant_tasks' ? tasks : table==='finance_transactions'?transactions:table==='finance_budgets'?budgets:table==='finance_activity'?financeActivity:activity;
+      const matches=row=>['id','grant_id','record_id','updated_at'].every(key=>!url.searchParams.has(key)||row[key]===url.searchParams.get(key).replace(/^eq\./,''));
       if(req.method==='GET') return json(res, rows.filter(matches));
       if(role!=='owner') return json(res,{message:'Permission denied',code:'42501'},403);
       const body=await readBody(req); let changed;
-      if(req.method==='POST') { changed={...body,id:randomUUID(),created_at:stamp(),updated_at:stamp(),...(table==='grants'?{archived_at:null}:{completed:false})}; rows.push(changed); }
+      if(req.method==='POST') { changed={...body,id:randomUUID(),created_at:stamp(),updated_at:stamp(),...(table==='grants'?{archived_at:null}:table==='finance_transactions'?{voided_at:null,source_label:'',source_key:null}:{completed:false})}; rows.push(changed); }
       else { const index=rows.findIndex(matches); if(index<0) return json(res,null); changed={...rows[index],...body,updated_at:stamp()}; if(req.method==='DELETE') rows.splice(index,1); else rows[index]=changed; }
-      activity.push({id:randomUUID(),grant_id:table==='grants'?changed.id:changed.grant_id,action:'Demo change recorded',created_at:stamp()});
+      if(table.startsWith('finance_'))financeActivity.push({id:randomUUID(),record_id:changed.id,record_type:table,action:'Demo change recorded',before_value:null,after_value:changed,created_at:stamp()});
+      else activity.push({id:randomUUID(),grant_id:table==='grants'?changed.id:changed.grant_id,action:'Demo change recorded',created_at:stamp()});
       return json(res,changed);
     }
     const path=resolve(root,'.'+decodeURIComponent(url.pathname)+(url.pathname.endsWith('/')?'index.html':''));
