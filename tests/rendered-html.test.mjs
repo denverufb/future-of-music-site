@@ -11,6 +11,7 @@ async function render(path = "/") {
 }
 
 const routes = [
+  ["/grant-tracker", /Grant Tracker/],
   ["/blog/jennings-afterschool-dj-program", /Future of Music Launches Free Afterschool DJ Program Across Six Jennings Schools/],
   ["/", /Learn music\./i],
   ["/about", /worth passing on\./i],
@@ -27,6 +28,14 @@ const routes = [
   ["/blog", /Stories &amp; findings/i],
   ["/blog/inside-the-youth-dj-program", /Inside the Youth DJ Program/i],
 ];
+
+test("grant workspace does not include analytics scripts or private records in its static export", async () => {
+  const html = await render("/grant-tracker");
+  assert.match(html, /noindex/);
+  assert.doesNotMatch(html, /<script[^>]+src="https:\/\/www\.googletagmanager/);
+  assert.doesNotMatch(html, /aereon@fomusic\.org|DEMO ·|Sample Community Foundation/);
+  assert.match(await render(), /href="\/grant-tracker\/"/);
+});
 
 test("Jennings launch article preserves approved facts and student photo", async () => {
   const html = await render("/blog/jennings-afterschool-dj-program");

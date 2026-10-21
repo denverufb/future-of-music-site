@@ -59,7 +59,7 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="footer-top">
         <div className="footer-brand">
-          <img src="/images/logo.png" alt="Future of Music" />
+          <div className="footer-logo"><img src="/images/logo.png" alt="Future of Music" /></div>
           <p>Music, mentorship, leadership, technology, and entrepreneurship for the next generation.</p>
           <div className="footer-seal">
             <a aria-label="Future of Music Candid profile" href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/?pkId=0c01c96a-78e8-466a-b047-d1c28bc25639" {...external}>
@@ -68,10 +68,9 @@ export function SiteFooter() {
           </div>
         </div>
         <div><h3>Explore</h3><a href="/about">Our Story</a><a href="/team">Our Team</a><a href="/programs/dj">Youth DJ Program</a><a href="https://mentoring.fomusic.org">Mentorship ↗</a><a href="/programs/artist-development">Artist Development Academy</a><a href="/blog">Blog</a></div>
-        <div><h3>Get involved</h3><a href="/programs/dj/#registration">DJ class registration</a><a href="https://mentoring.fomusic.org">Mentorship application ↗</a><a href="/donate">Donate</a><a href="https://mentoring.fomusic.org">Mentorship portal ↗</a></div>
-        <div><h3>Contact</h3><a href="mailto:info@fomusic.org">info@fomusic.org</a><a href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/" {...external}>Candid transparency profile</a></div>
+        <div><h3>Get involved</h3><a href="/programs/dj/#registration">DJ class registration</a><a href="https://mentoring.fomusic.org">Mentorship application ↗</a><a href="/donate">Donate</a><a href="https://mentoring.fomusic.org">Mentorship portal ↗</a><h3 className="footer-contact-heading">Contact</h3><a href="mailto:info@fomusic.org">info@fomusic.org</a><a href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/" {...external}>Candid transparency profile</a></div>
       </div>
-      <div className="footer-bottom"><p>St. Louis, Missouri · 501(c)(3) nonprofit · EIN 33-4753021</p><p>© 2026 Future of Music</p></div>
+      <div className="footer-bottom"><p>St. Louis, Missouri · 501(c)(3) nonprofit · EIN 33-4753021</p><p>© 2026 Future of Music</p><a className="footer-tracker" href="/grant-tracker/">Grant Tracker ↗</a></div>
     </footer>
   );
 }

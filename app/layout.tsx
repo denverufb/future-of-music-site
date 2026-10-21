@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
+import SiteAnalytics from "./components/SiteAnalytics";
 import "./globals.css";
 import "./editorial.css";
 
@@ -24,14 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body>
         {children}
-        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-Q9CN5F5MQ6" />
-        <Script id="future-of-music-analytics" strategy="afterInteractive">{`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-Q9CN5F5MQ6');
-          gtag('config', 'AW-17533011276');
-        `}</Script>
+        <SiteAnalytics />
       </body>
     </html>
   );

@@ -1,0 +1,57 @@
+// LOCAL QA ONLY. Serves a rewritten COPY in memory, never changes production assets.
+// All grants/accounts here are fictional; no requests go to Supabase.
+import { createServer } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { resolve, extname } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { emptyGrant, todayInChicago } from '../app/grant-tracker/model.ts';
+
+const port = 3077;
+const root = resolve('out');
+let role = 'owner';
+const ownerId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+const today = todayInChicago();
+const stamp = () => new Date().toISOString();
+let records = [
+  { ...emptyGrant(), id:'33333333-3333-4333-8333-333333333333', title:'DEMO · Youth music expansion', funder:'Sample Community Foundation', program:'Youth DJ Program', status:'Preparing', requested_amount:15000, deadline:today, contact_name:'Sample contact', notes:'Fictional record for testing only.', created_at:stamp(), updated_at:stamp(), archived_at:null },
+  { ...emptyGrant(), id:'55555555-5555-4555-8555-555555555555', title:'DEMO · Creative leadership', funder:'Sample Arts Fund', program:'Leadership', status:'Awarded', requested_amount:10000, awarded_amount:8000, received_amount:4000, reporting_on:today, created_at:stamp(), updated_at:stamp(), archived_at:null },
+  { ...emptyGrant(), id:'66666666-6666-4666-8666-666666666666', title:'DEMO · Mentorship access', funder:'Sample Youth Foundation', program:'Mentorship', status:'Submitted', requested_amount:5000, decision_on:today, created_at:stamp(), updated_at:stamp(), archived_at:null },
+];
+let tasks = [];
+let activity = [];
+const json = (res, body, code=200) => { res.writeHead(code, {'content-type':'application/json'}); res.end(JSON.stringify(body)); };
+const readBody = async req => { let text=''; for await (const chunk of req) text+=chunk; return text ? JSON.parse(text) : {}; };
+createServer(async (req,res) => {
+  const url = new URL(req.url, `http://localhost:${port}`);
+  try {
+    if (url.pathname.startsWith('/auth/v1/')) {
+      if (url.pathname.endsWith('/logout')) { res.writeHead(204); res.end(); return; }
+      if (url.pathname.endsWith('/token')) {
+        const body=await readBody(req);
+        if (body.password !== 'test-only-not-a-real-password') return json(res,{message:'Invalid login credentials'},400);
+        role = body.email.startsWith('viewer') ? 'viewer' : body.email.startsWith('unlisted') ? 'unlisted' : 'owner';
+        const payload=Buffer.from(JSON.stringify({sub:ownerId,role:'authenticated',exp:Math.floor(Date.now()/1000)+3600})).toString('base64url');
+        return json(res,{access_token:`eyJhbGciOiJIUzI1NiJ9.${payload}.test`,refresh_token:'local-test',token_type:'bearer',expires_in:3600,user:{id:ownerId,email:body.email,aud:'authenticated',role:'authenticated',app_metadata:{},user_metadata:{},created_at:stamp()}});
+      }
+      return json(res,{message:'Not implemented in preview'},400);
+    }
+    if(url.pathname.startsWith('/rest/v1/')) {
+      const table=url.pathname.split('/').pop();
+      if(table==='grant_members') return json(res,role==='unlisted' ? null : {role});
+      let rows=table==='grants' ? records : table==='grant_tasks' ? tasks : activity;
+      const matches=row=>['id','grant_id','updated_at'].every(key=>!url.searchParams.has(key)||row[key]===url.searchParams.get(key).replace(/^eq\./,''));
+      if(req.method==='GET') return json(res, rows.filter(matches));
+      if(role!=='owner') return json(res,{message:'Permission denied',code:'42501'},403);
+      const body=await readBody(req); let changed;
+      if(req.method==='POST') { changed={...body,id:randomUUID(),created_at:stamp(),updated_at:stamp(),...(table==='grants'?{archived_at:null}:{completed:false})}; rows.push(changed); }
+      else { const index=rows.findIndex(matches); if(index<0) return json(res,null); changed={...rows[index],...body,updated_at:stamp()}; if(req.method==='DELETE') rows.splice(index,1); else rows[index]=changed; }
+      activity.push({id:randomUUID(),grant_id:table==='grants'?changed.id:changed.grant_id,action:'Demo change recorded',created_at:stamp()});
+      return json(res,changed);
+    }
+    const path=resolve(root,'.'+decodeURIComponent(url.pathname)+(url.pathname.endsWith('/')?'index.html':''));
+    if(!path.startsWith(root+'/')) return json(res,{},403);
+    let content=await readFile(path); const ext=extname(path);
+    if(ext==='.js') content=Buffer.from(content.toString().replaceAll('https://jfbxmmsidkljpecktusy.supabase.co',`http://localhost:${port}`));
+    res.writeHead(200,{'content-type':({'.html':'text/html','.js':'application/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml'})[ext]||'application/octet-stream'}); res.end(content);
+  } catch { res.writeHead(404); res.end('Not found'); }
+}).listen(port,'127.0.0.1',()=>console.log(`Local fixture preview: http://localhost:${port}/grant-tracker/ (fictional data only)`));
