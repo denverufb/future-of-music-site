@@ -26,11 +26,28 @@ let transactions = [
 ];
 let budgets=[{id:'44444444-4444-4444-8444-444444444444',year:Number(today.slice(0,4)),kind:'expense',category:'Program Supplies',amount:1000,notes:'Fictional budget for local testing.',created_at:stamp(),updated_at:stamp()}];
 let financeActivity=[];
+const receiptFiles=new Map();
 const json = (res, body, code=200) => { res.writeHead(code, {'content-type':'application/json'}); res.end(JSON.stringify(body)); };
 const readBody = async req => { let text=''; for await (const chunk of req) text+=chunk; return text ? JSON.parse(text) : {}; };
 createServer(async (req,res) => {
   const url = new URL(req.url, `http://localhost:${port}`);
   try {
+    if(url.pathname.startsWith('/storage/v1/object/')){
+      const prefix='/storage/v1/object/',signed=url.pathname.startsWith(prefix+'sign/');
+      const name=url.pathname.slice((prefix+(signed?'sign/':'')).length);
+      if(req.method==='POST'&&signed)return json(res,{signedURL:`/object/sign/${name}?token=fictional-local-only`});
+      if(req.method==='POST'){
+        if(role!=='owner')return json(res,{message:'Permission denied'},403);
+        const chunks=[];for await(const chunk of req)chunks.push(chunk);
+        const data=await new Response(Buffer.concat(chunks),{headers:{'content-type':req.headers['content-type']}}).formData();
+        const file=[...data.values()].find(value=>typeof value!=='string');
+        if(!file)return json(res,{message:'No image'},400);
+        receiptFiles.set(name,{bytes:Buffer.from(await file.arrayBuffer()),type:file.type});
+        return json(res,{Key:name});
+      }
+      const file=receiptFiles.get(name);if(file&&signed){res.writeHead(200,{'content-type':file.type});res.end(file.bytes);return;}
+      return json(res,{message:'Private or missing receipt'},403);
+    }
     if (url.pathname.startsWith('/auth/v1/')) {
       if (url.pathname.endsWith('/logout')) { res.writeHead(204); res.end(); return; }
       if (url.pathname.endsWith('/token')) {

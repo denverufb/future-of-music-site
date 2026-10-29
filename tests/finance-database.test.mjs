@@ -48,3 +48,20 @@ test('private workbook import reconciles and is safe to rerun',{skip:!process.en
     assert.equal((await db.query("select count(*)::int n from public.finance_transactions where notes='Owner correction'")).rows[0].n,1);
   }finally{await db.close();}
 });
+test('private receipt storage grants owner insert, members read, no overwrite/delete or anonymous access',async()=>{
+  const db=await database();try{
+    await db.exec(`create schema storage;create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);create table storage.objects(id uuid default gen_random_uuid(),bucket_id text,name text);alter table storage.objects enable row level security;grant usage on schema storage to anon,authenticated;grant select,insert,update,delete on storage.objects to anon,authenticated;create policy unrelated_broad_policy on storage.objects for all to public using(true) with check(true);`);
+    const sql=await readFile(new URL('../supabase/finance-receipts-setup.sql',import.meta.url),'utf8');await db.exec(sql);await db.exec(sql);
+    assert.equal((await db.query('select public from storage.buckets')).rows[0].public,false);
+    await as(db,owner);
+    await db.exec("insert into storage.objects(bucket_id,name) values('finance-receipts','receipts/aaaa-bbbb.png')");
+    assert.equal((await db.query("update storage.objects set name='receipts/cccc.png' returning *")).rows.length,0);
+    assert.equal((await db.query('delete from storage.objects returning *')).rows.length,0);
+    await assert.rejects(db.exec("insert into storage.objects(bucket_id,name) values('finance-receipts','public/evil.svg')"),/row-level security/);
+    await as(db,viewer);assert.equal((await db.query('select * from storage.objects')).rows.length,1);
+    await assert.rejects(db.exec("insert into storage.objects(bucket_id,name) values('finance-receipts','receipts/cccc.png')"),/row-level security/);
+    await as(db,other);assert.equal((await db.query('select * from storage.objects')).rows.length,0);
+    await db.exec("reset role;select set_config('request.jwt.claim.sub','',false);set role anon;");
+    await assert.rejects(db.query('select * from storage.objects'),/permission denied/);
+  }finally{await db.close();}
+});

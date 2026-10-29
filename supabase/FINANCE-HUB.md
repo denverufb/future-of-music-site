@@ -39,3 +39,12 @@ Transactions can be edited, voided, and restored. Hard deletion is not granted. 
 CSV exports include the fields needed for receipts, restrictions, reimbursements, payment status and grant references. The full finance backup includes all finance records (including voided), budgets, finance audit, grants and tasks. Backups are private downloads, not an automatic restore/import mechanism. Document links retain their source service's sharing permissions; the tracker does not upload documents.
 
 Grant reminders remain in-app only. No paid service, background email sender, payroll processor, tax filing, or banking integration is configured.
+# Receipt scanning and private originals
+
+Run `supabase/finance-receipts-setup.sql` once in the same Supabase project's SQL Editor. It creates a private 8 MB/image bucket and enforces owner uploads and owner/viewer reads. It is safe to rerun. No new login, paid AI account, or service-role credential is needed. Existing Supabase storage/bandwidth limits still apply.
+
+In Purchases & bills → Add purchase / bill, choose a photo, select Read receipt, review vendor/total/items, and choose Use reviewed details. Select a category and check the date and paid status before Save transaction. JPG, PNG, and WebP are supported; export PDF/HEIC to an image first. OCR is English text recognition plus conservative field parsing, not a general-purpose vision chatbot; handwritten, blurry, or complex receipts need manual correction. It never posts entries automatically.
+
+Tesseract.js runs locally in the browser and downloads its worker/language tools from its default CDN. Receipt pixels are not sent to an OCR provider. If Keep original is selected, Save uploads the original to private Supabase Storage. Uncheck it to scan without storing an image. The database holds a stable private locator; the app creates a 60-second signed link only after an authorized user requests it. Treat that short-lived link as private.
+
+Originals are immutable through the app; replacing a receipt preserves the previous file for history. If upload succeeds but saving the transaction fails, the locator stays in the form for retry without a second upload. Discarding then can leave an unattached private file; administrators can review these in Storage. No automatic deletion occurs. JSON/CSV exports include locators, not image bytes; retain/download originals separately.

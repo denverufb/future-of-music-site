@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1000" viewBox="0 0 900 1000">
+<rect width="900" height="1000" fill="white"/>
+<g font-family="Arial, sans-serif" font-size="36" fill="black">
+<text x="80" y="100">EXAMPLE SUPPLY</text>
+<text x="80" y="170">123 Main Street</text>
+<text x="80" y="250">DEMO RECEIPT - NOT A REAL PURCHASE</text>
+<text x="80" y="350">Pencils</text><text x="680" y="350">4.00</text>
+<text x="80" y="420">Paper</text><text x="680" y="420">10.00</text>
+<text x="80" y="520">Subtotal</text><text x="680" y="520">14.00</text>
+<text x="80" y="590">Tax</text><text x="680" y="590">1.12</text>
+<text x="80" y="690">TOTAL</text><text x="660" y="690">$15.12</text>
+<text x="80" y="790">Cash</text><text x="680" y="790">20.00</text>
+<text x="80" y="860">Change</text><text x="680" y="860">4.88</text>
+</g></svg>

@@ -10,8 +10,8 @@
     "build": "node scripts/prepare-gallery.mjs && next build --webpack",
     "build:sites": "pnpm run build && node scripts/prepare-sites-static.mjs",
     "start": "next start",
-    "test": "pnpm run build && node --experimental-strip-types --test tests/rendered-html.test.mjs tests/grant-tracker.test.mjs tests/grant-database.test.mjs tests/finance.test.mjs tests/finance-database.test.mjs",
-    "test:grants": "node --experimental-strip-types --test tests/grant-tracker.test.mjs tests/grant-database.test.mjs tests/finance.test.mjs tests/finance-database.test.mjs",
+    "test": "pnpm run build && node --experimental-strip-types --test tests/rendered-html.test.mjs tests/grant-tracker.test.mjs tests/grant-database.test.mjs tests/finance.test.mjs tests/finance-database.test.mjs tests/receipt.test.mjs",
+    "test:grants": "node --experimental-strip-types --test tests/grant-tracker.test.mjs tests/grant-database.test.mjs tests/finance.test.mjs tests/finance-database.test.mjs tests/receipt.test.mjs",
     "typecheck:grants": "tsc --project tsconfig.grants.json",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
@@ -21,7 +21,8 @@
     "drizzle-orm": "0.45.2",
     "next": "16.2.6",
     "react": "19.2.6",
-    "react-dom": "19.2.6"
+    "react-dom": "19.2.6",
+    "tesseract.js": "7.0.0"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.37.1",

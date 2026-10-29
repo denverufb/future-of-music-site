@@ -141,6 +141,13 @@
 .finance table td:nth-child(n+2) { font-variant-numeric:tabular-nums; }
 .finance table tfoot td { border-top:2px solid var(--ink);font-size:12px;font-weight:600; }
 .financeSection { margin:40px 0; }
+.receiptScanner { border-block:1px solid var(--line);padding:24px 0;margin-bottom:28px; }
+.receiptScanner h4 { font-size:18px;margin:0 0 12px; }
+.receiptScanner .actions { margin:16px 0; }
+.receiptPreview { display:block;max-width:100%;width:240px;max-height:320px;object-fit:contain;object-position:left top;margin:18px 0;background:white; }
+.receiptReview { padding-top:20px;border-top:1px solid var(--line);margin-top:20px; }
+.receiptReview > label,.receiptReview > details { margin-block:16px; }
+.receiptText { white-space:pre-wrap;overflow-wrap:anywhere;max-height:250px;overflow:auto;font-size:13px;background:#fff;padding:16px; }
 .financeSection > .small { margin:14px 0;max-width:800px; }
 .financeFacts { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding-bottom:24px; }
 .financeFacts p { font-size:12px;color:#6c6570; }
