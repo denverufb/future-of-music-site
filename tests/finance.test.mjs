@@ -1,8 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {emptyTransaction,financeSummary,monthlyReport,categoryReport,financeCsv,validateTransaction} from '../app/grant-tracker/finance-model.ts';
+import {emptyTransaction,financeSummary,spendingSummary,monthlyReport,categoryReport,financeCsv,validateTransaction} from '../app/grant-tracker/finance-model.ts';
 const transaction=(patch={})=>({...emptyTransaction('revenue','2026-06-10'),id:'one',amount:100,description:'Sample',voided_at:null,...patch});
+test('funds remaining excludes pledges and noncash, reserves unpaid bills and flags restricted cash',()=>{
+  const rows=[transaction({amount:1000}),transaction({amount:200,restricted:true}),transaction({amount:500,status:'Pledged'}),transaction({amount:50,status:'Pending'}),transaction({amount:50,status:'Cancelled'}),transaction({amount:90,voided_at:'2026-10-20'}),transaction({amount:75,in_kind:true,restricted:true}),transaction({amount:75,category:'In-Kind Value'}),transaction({kind:'expense',amount:100,paid:true,reimbursable:true}),transaction({kind:'expense',amount:50,paid:false}),transaction({kind:'expense',amount:80,payment_method:'In-Kind'})];
+  assert.deepEqual(spendingSummary(rows),{cashReceived:1200,paidPurchases:100,unpaidBills:50,remaining:1050,restrictedReceived:200});
+});
+test('funds remaining keeps cents, zero and negative shortfalls without hiding them',()=>{
+  assert.equal(spendingSummary([]).remaining,0);
+  assert.equal(spendingSummary([transaction({amount:.1}),transaction({amount:.2}),transaction({kind:'expense',amount:1,paid:false})]).remaining,-.7);
+});
 test('finance separates actuals, unpaid bills, noncash and cancelled entries',()=>{
   const rows=[transaction({restricted:true}),transaction({amount:20,status:'Pledged'}),transaction({amount:40,status:'Cancelled'}),transaction({amount:90,voided_at:'2026-10-20'}),transaction({kind:'expense',amount:30,paid:true,reimbursable:true}),transaction({kind:'expense',amount:10,paid:false}),transaction({amount:50,category:'In-Kind Value'})];
   assert.deepEqual(financeSummary(rows),{received:150,spent:40,surplus:110,pending:20,unpaid:10,reimbursable:30,restricted:100,inKindRevenue:50,cashMovement:70});

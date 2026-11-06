@@ -38,6 +38,16 @@ export function financeSummary(rows:Transaction[]) {
     cashMovement:(cents(sumAmounts(revenue.filter(t=>!isNoncash(t))))-cents(sumAmounts(expenses.filter(t=>t.paid&&!isNoncash(t)))))/100};
 }
 export function isNoncash(t:TransactionDraft){return t.in_kind||t.payment_method==='In-Kind'||(t.kind==='revenue'&&t.category==='In-Kind Value');}
+/** Reporting-period cash funding after recorded commitments; not an opening/bank balance. */
+export function spendingSummary(rows:Transaction[]) {
+  const active=rows.filter(t=>!t.voided_at&&!isNoncash(t));
+  const received=active.filter(t=>t.kind==='revenue'&&t.status==='Received');
+  const expenses=active.filter(t=>t.kind==='expense');
+  const cashReceived=sumAmounts(received),paidPurchases=sumAmounts(expenses.filter(t=>t.paid)),unpaidBills=sumAmounts(expenses.filter(t=>!t.paid));
+  return {cashReceived,paidPurchases,unpaidBills,
+    remaining:(cents(cashReceived)-cents(paidPurchases)-cents(unpaidBills))/100,
+    restrictedReceived:sumAmounts(received.filter(t=>t.restricted))};
+}
 export function categoryReport(rows:Transaction[],budgets:Budget[],kind:Kind,year:number) {
   const actual=rows.filter(t=>!t.voided_at && t.kind===kind && t.occurred_on.startsWith(`${year}-`) && (kind==='expense'||t.status==='Received'));
   const plan=budgets.filter(b=>b.year===year&&b.kind===kind);

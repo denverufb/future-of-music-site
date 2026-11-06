@@ -141,6 +141,23 @@
 .finance table td:nth-child(n+2) { font-variant-numeric:tabular-nums; }
 .finance table tfoot td { border-top:2px solid var(--ink);font-size:12px;font-weight:600; }
 .financeSection { margin:40px 0; }
+.spendingSpotlight { display:grid;grid-template-columns:1.2fr 1fr;gap:28px 48px;margin:28px 0 24px;padding:32px;background:#242331;color:#fff;border-left:5px solid #ddca7d; }
+.spendingSpotlight h3 { color:#fff;font-size:24px;line-height:1.25;margin:0; }
+.spendingSpotlight p { color:#e2dfe7;font-size:13px;line-height:1.65;max-width:65ch; }
+.spendingSpotlight .spendingPeriod { margin:0 0 12px;color:#ddca7d;font-size:11px;letter-spacing:.1em;text-transform:uppercase; }
+.spendingAmount { display:block;color:#ddca7d;font:500 clamp(40px,5vw,64px)/1.12 Georgia,serif;margin:20px 0 12px;overflow-wrap:anywhere; }
+.spendingBreakdown { align-self:center;min-width:0; }
+.spendingBreakdown h4 { margin:0 0 14px;color:#fff;font-size:14px; }
+.spendingBreakdown dl { margin:0; }
+.finance .spendingBreakdown dl>div { display:flex;justify-content:space-between;gap:16px;border-color:#565361;padding:12px 0; }
+.finance .spendingBreakdown dt { font-size:13px;text-transform:none;font-weight:400; }
+.spendingBreakdown dd { flex-shrink:0;font-size:15px;font-variant-numeric:tabular-nums; }
+.spendingCaution { grid-column:1/-1;border-top:1px solid #565361;padding-top:16px; }
+.spendingCaution p { max-width:none;margin:0; }
+.spendingCaution p+p { margin-top:10px; }.spendingCaution strong { color:#fff; }
+.stats.financeStats { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.stats.financeStats>div { border-top:0;padding:24px 20px;border-right:1px solid var(--line); }.stats.financeStats>div:first-child { padding-left:0; }.stats.financeStats>div:last-child { border-right:0; }
+@media(max-width:700px){.spendingSpotlight{grid-template-columns:1fr;padding:24px 20px;gap:22px;}.spendingSpotlight h3{font-size:22px;}.stats.financeStats{grid-template-columns:1fr;}.stats.financeStats>div{border-right:0;border-bottom:1px solid var(--line);padding:18px 0;}.stats.financeStats>div:last-child{border-bottom:0;}}
 .receiptScanner { border-block:1px solid var(--line);padding:24px 0;margin-bottom:28px; }
 .receiptScanner h4 { font-size:18px;margin:0 0 12px; }
 .receiptScanner .actions { margin:16px 0; }
