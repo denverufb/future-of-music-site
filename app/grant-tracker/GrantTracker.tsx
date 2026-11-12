@@ -6,10 +6,11 @@ import { getClient } from "./client";
 import { dateLabel, emptyGrant, grantsCsv, money, remindersFor, safeUrl, statuses, todayInChicago, validateGrant, type Grant, type GrantDraft, type Task } from "./model";
 import styles from "./tracker.module.css";
 import FinanceWorkspace from './FinanceWorkspace';
+import ProgramWorkspace from './ProgramWorkspace';
 
 type Activity = { id: string; action: string; created_at: string };
 type Tab = "overview" | "grants" | "deadlines" | "finance";
-type Role = "owner" | "viewer";
+type Role = "owner" | "viewer" | "coach";
 
 function errorText(error: unknown) {
   const e = error as { code?: string; message?: string };
@@ -48,6 +49,7 @@ export default function GrantTracker() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [tab, setTab] = useState<Tab>("finance");
+  const [area, setArea] = useState<'financials'|'programs'>('financials');
   const [financeDirty, setFinanceDirty] = useState(false);
   const [financeBusy, setFinanceBusy] = useState(false);
   const [search, setSearch] = useState("");
@@ -78,7 +80,7 @@ export default function GrantTracker() {
       const { data } = getClient().auth.onAuthStateChange((event, value) => {
         if (!mounted) return;
         setSession(value); setAuthReady(true);
-        if (event === "PASSWORD_RECOVERY") setPasswordPanel(true);
+        if (event === "PASSWORD_RECOVERY" || (value && new URLSearchParams(window.location.search).get('setup') === '1')) setPasswordPanel(true);
         if (!value) {
           generation.current++; activityFor.current = null;
           setRole(null); setGrants([]); setTasks([]); setPanel(null); setDraft(emptyGrant()); setDirty(false); setActivity([]); setPasswordPanel(false);
@@ -96,7 +98,13 @@ export default function GrantTracker() {
     try {
       const member = await getClient().from("grant_members").select("role").eq("user_id", userId).maybeSingle();
       if (member.error) throw member.error;
-      if (!member.data || !["owner", "viewer"].includes(member.data.role)) throw new Error("This login has not been given access to the FOM grant workspace. The owner must assign access in Supabase.");
+      if (!member.data || !["owner", "viewer"].includes(member.data.role)) {
+        const coach = await getClient().from('program_members').select('active').eq('user_id',userId).maybeSingle();
+        if (coach.error) throw coach.error;
+        if (!coach.data?.active) throw new Error('This account does not have active Administration Hub access. Contact the owner.');
+        if(current !== generation.current)return;
+        setRole('coach');setArea('programs');setGrants([]);setTasks([]);return;
+      }
       const [nextGrants, nextTasks] = await Promise.all([fetchRows<Grant>("grants"), fetchRows<Task>("grant_tasks")]);
       if (current !== generation.current) return;
       setRole(member.data.role as Role); setGrants(nextGrants); setTasks(nextTasks);
@@ -217,17 +225,19 @@ export default function GrantTracker() {
   const remindersList = (list: typeof reminders) => list.length ? <ul className={styles.reminders}>{list.map(r => <li key={r.id}><div><span className={r.days < 0 ? styles.overdue : styles.eyebrow}>{r.kind} · {r.days < 0 ? `${Math.abs(r.days)} days overdue` : r.days === 0 ? "Today" : `In ${r.days} day${r.days === 1 ? "" : "s"}`}</span><button className={styles.textButton} onClick={() => openGrant(grants.find(g => g.id === r.grantId))}>{r.grantTitle}</button><p>{r.title}</p></div><time dateTime={r.date}>{dateLabel(r.date)}</time></li>)}</ul> : <p className={styles.emptySmall}>Nothing due here. Add dates to your grants or tasks to see reminders.</p>;
 
   return <div className={styles.app}>
-    <a className="skip-link" href="#main-content">Skip to finance workspace</a>
-    <header className={styles.header}><a href="/" aria-label="Future of Music home"><img src="/images/logo.png" alt="Future of Music" /></a><span>FOM Finance Hub</span><a href="/">Back to website ↗</a></header>
+    <a className="skip-link" href="#main-content">Skip to administration workspace</a>
+    <header className={styles.header}><a href="/" aria-label="Future of Music home"><img src="/images/logo.png" alt="Future of Music" /></a><span>FOM Administration Hub</span><a href="/">Back to website ↗</a></header>
     <main id="main-content" className={styles.main}>
       {!authReady ? <p role="status">Checking your session…</p> : !session ? <div className={styles.loginLayout}>
-        <section className={styles.loginIntro}><p className={styles.eyebrow}>FUTURE OF MUSIC · PRIVATE WORKSPACE</p><h1>More room<br />for what’s next.</h1><p>A clear view of the funding that supports our music, mentorship, and youth programs.</p><div className={styles.loginFeatures}><span>01 / Revenue & purchases</span><span>02 / Budgets & reports</span><span>03 / Grants & deadlines</span></div><p className={styles.muted}>For authorized FOM users only.</p></section>
-        <section className={styles.loginForm}><p className={styles.eyebrow}>SECURE ACCESS</p><h2>Sign in to Finance Hub.</h2><p>Your login determines whether you can edit or only view records.</p>{alert}<LoginForm onError={setError} busy={busy} setBusy={setBusy} /><p className={styles.small}>Need access or a password reset? Contact the workspace owner. There is no public registration.</p></section>
+        <section className={styles.loginIntro}><p className={styles.eyebrow}>FUTURE OF MUSIC · PRIVATE WORKSPACE</p><h1>The work behind<br />the programs.</h1><p>Financials and program administration, together in one secure workspace.</p><div className={styles.loginFeatures}><span>01 / Funding, purchases & grants</span><span>02 / Students & weekly evaluations</span><span>03 / Surveys & program outcomes</span></div><p className={styles.muted}>For authorized FOM users only.</p></section>
+        <section className={styles.loginForm}><p className={styles.eyebrow}>SECURE ACCESS</p><h2>Sign in to Administration Hub.</h2><p>Your account determines which areas you can access. Coaches do not have financial access.</p>{alert}<LoginForm onError={setError} busy={busy} setBusy={setBusy} /><p className={styles.small}>Need access or a password reset? Contact the workspace owner. There is no public registration.</p></section>
       </div> : <>
-        <div className={styles.workspaceHeading}><div><p className={styles.eyebrow}>FUTURE OF MUSIC / GRANTS & FINANCES</p><h1>FOM Finance Hub</h1><p>{session.user.email} <span className={styles.badge}>{role === "owner" ? "Owner · can edit" : role === "viewer" ? "View only" : "Checking access"}</span></p></div><div className={styles.actions}><button onClick={() => { if (canLeave()) { setPanel(null); setDirty(false); setPasswordPanel(!passwordPanel); } }} disabled={busy || financeBusy}>Change password</button><button onClick={signOut} disabled={busy || financeBusy}>Sign out</button></div></div>
+        <div className={styles.workspaceHeading}><div><p className={styles.eyebrow}>FUTURE OF MUSIC / PRIVATE WORKSPACE</p><h1>Administration Hub</h1><p>{session.user.email} <span className={styles.badge}>{role === "owner" ? "Owner · full access" : role === "viewer" ? "Financials · view only" : role === 'coach' ? 'Program coach' : "Checking access"}</span></p></div><div className={styles.actions}><button onClick={() => { if (canLeave()) { setPanel(null); setDirty(false); setPasswordPanel(!passwordPanel); } }} disabled={busy || financeBusy}>Change password</button><button onClick={signOut} disabled={busy || financeBusy}>Sign out</button></div></div>
         {alert}
-        {passwordPanel ? <PasswordForm onDone={() => { setPasswordPanel(false); setNotice("Password updated."); }} onCancel={() => setPasswordPanel(false)} onError={setError} /> : <>
+        {passwordPanel ? <PasswordForm onDone={() => { window.history.replaceState(null,'',window.location.pathname);setPasswordPanel(false); setNotice("Password updated."); }} onCancel={() => setPasswordPanel(false)} onError={setError} /> : <>
           {!role ? <section className={styles.empty}><h2>{loading ? "Opening your workspace…" : "Access is not ready yet."}</h2><p>{loading ? "Loading your saved grants securely." : "Your account and private database must be set up before grant records can be opened."}</p><button onClick={() => void load()} disabled={loading}>Check again</button></section> : <>
+            <nav className={styles.hubAreas} aria-label="Administration areas">{role!=='coach'&&<button aria-current={area==='financials'?'page':undefined} onClick={()=>{if(canLeave()){setArea('financials');setPanel(null);setDirty(false);setFinanceDirty(false);}}}>Financials <small>Funding, purchases, budgets & grants</small></button>}{role!=='viewer'&&<button aria-current={area==='programs'?'page':undefined} onClick={()=>{if(canLeave()){setArea('programs');setPanel(null);setDirty(false);setFinanceDirty(false);}}}>Program Administration <small>Students, surveys & evaluations</small></button>}</nav>
+            {area==='programs'&&role!=='viewer'?<ProgramWorkspace key={userId} userId={userId!} isOwner={isOwner} onDirtyChange={setFinanceDirty} onBusyChange={setFinanceBusy}/>:role!=='coach'&&<>
             <nav className={styles.tabs} aria-label="Finance hub"><button aria-current={!panel && tab === "finance" ? "page" : undefined} onClick={() => switchTab("finance")}>Finances</button><button aria-current={!panel && tab === "overview" ? "page" : undefined} onClick={() => switchTab("overview")}>Grant overview</button><button aria-current={!panel && tab === "grants" ? "page" : undefined} onClick={() => switchTab("grants")}>All grants <span>{activeGrants.length}</span></button><button aria-current={!panel && tab === "deadlines" ? "page" : undefined} onClick={() => switchTab("deadlines")}>Deadlines {overdue.length > 0 && <span>{overdue.length} overdue</span>}</button><button disabled={busy || financeBusy || loading || dirty || financeDirty} onClick={() => void load()}>{loading ? "Refreshing…" : "Refresh grants"}</button></nav>
             {panel ? <section>
               <div className={styles.detailHeading}><div><button className={styles.textButton} onClick={() => switchTab("grants")}>← Back to grants</button><h2 ref={heading} tabIndex={-1}>{panel === "new" ? "New grant" : selected?.title || "Grant details"}</h2>{selected?.archived_at && <p className={styles.badge}>Archived</p>}</div><div className={styles.actions}>{isOwner && !editing && <button className={styles.primary} onClick={() => { if (selected) { setDraft(selected); setBaseVersion(selected.updated_at); } setEditing(true); }}>Edit grant</button>}{isOwner && selected && <button disabled={busy} onClick={archive}>{selected.archived_at ? "Restore grant" : "Archive grant"}</button>}</div></div>
@@ -260,10 +270,11 @@ export default function GrantTracker() {
               <div className={styles.filters}><label>Search<input type="search" placeholder="Grant, funder, program, notes…" value={search} onChange={e => setSearch(e.target.value)} /></label><label>Status<select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}><option>All statuses</option>{statuses.map(s => <option key={s}>{s}</option>)}</select></label><label>Sort by<select value={sort} onChange={e => setSort(e.target.value)}><option value="deadline">Application deadline</option><option value="name">Grant name</option><option value="amount">Requested amount</option><option value="updated">Last updated</option></select></label><label className={styles.checkLabel}><input type="checkbox" checked={showArchived} onChange={e => setShowArchived(e.target.checked)} />Archive</label></div>
               <div className={styles.tableWrap}><table><caption className={styles.srOnly}>Grant records. Select a grant name to open the full record.</caption><thead><tr><th scope="col">Grant / funder</th><th scope="col">Status</th><th scope="col">Requested</th><th scope="col">Awarded</th><th scope="col">Deadline</th></tr></thead><tbody>{filtered.map(g => <tr key={g.id}><td><button className={styles.textButton} onClick={() => openGrant(g)}>{g.title}</button><small>{g.funder}{g.program ? ` · ${g.program}` : ""}</small></td><td><span className={styles.status} data-status={g.status}>{g.status}</span></td><td>{money(g.requested_amount)}</td><td>{money(g.awarded_amount)}</td><td>{dateLabel(g.deadline)}</td></tr>)}</tbody></table></div>{!filtered.length && <div className={styles.empty}><h3>No grants to show.</h3><p>{search || statusFilter !== "All statuses" ? "Try another search or status filter." : showArchived ? "Archived grants will appear here." : "Add your first grant to get started."}</p></div>}
             </> : <><div className={styles.overviewIntro}><div><h2>Deadlines & reminders</h2><p>Application deadlines, expected decisions, reports, and unfinished tasks.</p></div></div><div className={styles.deadlineNote}>Reminders update while this page is open. No emails or background notifications are sent. Dates use Central Time; check the funder’s exact cutoff in the grant record.</div>{remindersList(reminders)}</>}
+            </>}
           </>}
         </>}
       </>}
-    </main><footer className={styles.footer}><span>Future of Music · Private finance workspace</span><span>Keep exported files and login details private.</span></footer>
+    </main><footer className={styles.footer}><span>Future of Music · Private administration workspace</span><span>Keep student records, exported files, and login details private.</span></footer>
   </div>;
 }
 

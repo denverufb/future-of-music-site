@@ -26,6 +26,9 @@ let transactions = [
 ];
 let budgets=[{id:'44444444-4444-4444-8444-444444444444',year:Number(today.slice(0,4)),kind:'expense',category:'Program Supplies',amount:1000,notes:'Fictional budget for local testing.',created_at:stamp(),updated_at:stamp()}];
 let financeActivity=[];
+const programSites=[{id:'77777777-7777-4777-8777-777777777777',name:'Sample school',program:'DEMO Youth DJ'}];
+let programStudents=[{id:'88888888-8888-4888-8888-888888888888',site_id:programSites[0].id,name:'Demo Student',participant_code:'DEMO-01',active:true,survey_completed:false,created_at:stamp(),updated_at:stamp()}];
+let programEvaluations=[],programAssessments=[],programFeedback=[],programMembers=[];
 const receiptFiles=new Map();
 const json = (res, body, code=200) => { res.writeHead(code, {'content-type':'application/json'}); res.end(JSON.stringify(body)); };
 const readBody = async req => { let text=''; for await (const chunk of req) text+=chunk; return text ? JSON.parse(text) : {}; };
@@ -53,7 +56,7 @@ createServer(async (req,res) => {
       if (url.pathname.endsWith('/token')) {
         const body=await readBody(req);
         if (body.password !== 'test-only-not-a-real-password') return json(res,{message:'Invalid login credentials'},400);
-        role = body.email.startsWith('viewer') ? 'viewer' : body.email.startsWith('unlisted') ? 'unlisted' : 'owner';
+        role = body.email.startsWith('coach') ? 'coach' : body.email.startsWith('viewer') ? 'viewer' : body.email.startsWith('unlisted') ? 'unlisted' : 'owner';
         const payload=Buffer.from(JSON.stringify({sub:ownerId,role:'authenticated',exp:Math.floor(Date.now()/1000)+3600})).toString('base64url');
         return json(res,{access_token:`eyJhbGciOiJIUzI1NiJ9.${payload}.test`,refresh_token:'local-test',token_type:'bearer',expires_in:3600,user:{id:ownerId,email:body.email,aud:'authenticated',role:'authenticated',app_metadata:{},user_metadata:{},created_at:stamp()}});
       }
@@ -61,13 +64,15 @@ createServer(async (req,res) => {
     }
     if(url.pathname.startsWith('/rest/v1/')) {
       const table=url.pathname.split('/').pop();
-      if(table==='grant_members') return json(res,role==='unlisted' ? null : {role});
-      let rows=table==='grants' ? records : table==='grant_tasks' ? tasks : table==='finance_transactions'?transactions:table==='finance_budgets'?budgets:table==='finance_activity'?financeActivity:activity;
+      if(table==='grant_members') return json(res,['unlisted','coach'].includes(role) ? null : {role});
+      if(table==='program_members'&&url.searchParams.has('user_id'))return json(res,role==='coach'?{active:true}:null);
+      if(table==='program_mark_survey'){const b=await readBody(req);const s=programStudents.find(s=>s.id===b.student);if(s)s.survey_completed=b.completed;return json(res,null);}
+      let rows=({program_sites:programSites,program_students:programStudents,program_evaluations:programEvaluations,program_assessments:programAssessments,program_feedback:programFeedback,program_members:programMembers})[table] || (table==='grants' ? records : table==='grant_tasks' ? tasks : table==='finance_transactions'?transactions:table==='finance_budgets'?budgets:table==='finance_activity'?financeActivity:activity);
       const matches=row=>['id','grant_id','record_id','updated_at'].every(key=>!url.searchParams.has(key)||row[key]===url.searchParams.get(key).replace(/^eq\./,''));
       if(req.method==='GET') return json(res, rows.filter(matches));
-      if(role!=='owner') return json(res,{message:'Permission denied',code:'42501'},403);
+      if(role!=='owner'&&!(role==='coach'&&['program_evaluations','program_assessments','program_feedback'].includes(table))) return json(res,{message:'Permission denied',code:'42501'},403);
       const body=await readBody(req); let changed;
-      if(req.method==='POST') { changed={...body,id:randomUUID(),created_at:stamp(),updated_at:stamp(),...(table==='grants'?{archived_at:null}:table==='finance_transactions'?{voided_at:null,source_label:'',source_key:null}:{completed:false})}; rows.push(changed); }
+      if(req.method==='POST') { changed={...body,id:randomUUID(),created_by:ownerId,created_at:stamp(),updated_at:stamp(),...(table==='grants'?{archived_at:null}:table==='finance_transactions'?{voided_at:null,source_label:'',source_key:null}:{completed:false})}; rows.push(changed); }
       else { const index=rows.findIndex(matches); if(index<0) return json(res,null); changed={...rows[index],...body,updated_at:stamp()}; if(req.method==='DELETE') rows.splice(index,1); else rows[index]=changed; }
       if(table.startsWith('finance_'))financeActivity.push({id:randomUUID(),record_id:changed.id,record_type:table,action:'Demo change recorded',before_value:null,after_value:changed,created_at:stamp()});
       else activity.push({id:randomUUID(),grant_id:table==='grants'?changed.id:changed.grant_id,action:'Demo change recorded',created_at:stamp()});
