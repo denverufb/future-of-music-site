@@ -31,12 +31,12 @@ export const djStatements = [
   'Mentorship: connects DJ and music skills to careers and entrepreneurship.',
 ];
 export const feedbackStatements = [
-  'The program helped me improve my leadership skills.',
-  'I feel more confident using DJ equipment and music technology.',
-  'I improved my ability to work and collaborate with others.',
-  'I feel more confident sharing my ideas or performing.',
+  'I felt respected and supported by the DJ teacher.',
+  'The DJ teacher explained skills in a way I understood.',
+  'I had chances to try new things and ask questions.',
+  'I would like to participate in another DJ session.',
 ];
-export const formNames = { pre: 'Student pre-program survey', post: 'Student post-program survey', skills: 'Student skills checklist', dj_review: 'Professional DJ development review', feedback: 'Anonymous program feedback' } as const;
+export const formNames = { pre: 'Student pre-program survey', post: 'Student post-program survey', skills: 'Student skills checklist', dj_review: 'Professional DJ development review', feedback: 'DJ teacher feedback' } as const;
 export type FormKind = keyof typeof formNames;
 export type Site = { id: string; name: string; program: string };
 export type Student = { id: string; site_id: string; participant_code: string; name: string; active: boolean; survey_completed: boolean; updated_at: string };
