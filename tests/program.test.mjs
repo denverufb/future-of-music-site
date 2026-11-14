@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {emptyAssessment,validateAssessment,programSummary,evaluationComplete,questionsFor,optionsFor} from '../app/grant-tracker/program-model.ts';
+import {emptyAssessment,validateAssessment,programSummary,evaluationComplete,questionsFor,optionsFor,timeEntryHours,hoursLabel,moneyLabel,weekStart} from '../app/grant-tracker/program-model.ts';
 test('assessment templates preserve scales and distinguish missing from lowest response',()=>{
   for(const [kind,count] of [['pre',12],['post',12],['skills',11],['dj_review',12],['feedback',4]]){
     const p=emptyAssessment(kind);assert.equal(questionsFor(kind).length,count);assert.equal(p.ratings.length,count);assert.ok(validateAssessment(kind,p));
@@ -16,4 +16,12 @@ test('only fully recorded weeks count; inactive students are excluded',()=>{
   assert.equal(evaluationComplete({...valid,engagement:''}),false);
   const evaluations=[1,2,3,4].map(week=>({...valid,student_id:'a',week}));evaluations.push({...valid,student_id:'b',week:1,evaluator_role:''},{...valid,student_id:'c',week:1});
   assert.deepEqual(programSummary(students,evaluations),{students:2,evaluations:4,expected:8,allFour:1,surveyCompleted:1,drafts:1});
+});
+test('time entries calculate net hours and payroll labels without treating an open shift as paid time',()=>{
+  const shift={clock_in:'2026-11-09T15:00:00.000Z',clock_out:'2026-11-09T18:30:00.000Z',break_minutes:30};
+  assert.equal(timeEntryHours(shift),3);
+  assert.equal(timeEntryHours({...shift,clock_out:null}),0);
+  assert.equal(hoursLabel(2.5),'2.50 hrs');
+  assert.equal(moneyLabel(1250),'$12.50');
+  assert.equal(weekStart('2026-11-12'),'2026-11-09');
 });

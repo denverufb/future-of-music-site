@@ -44,6 +44,8 @@ export type Evaluation = { id: string; student_id: string; week: number; engagem
 export type AssessmentPayload = { phase: 'pre'|'post'; ratings: (number | null)[]; examples: string[]; next_step: string; strength: string; growth_area: string; artist: string; reviewer: string; setting: string; follow_up: string; reviewer_signature: string; artist_signature: string };
 export type Assessment = { id: string; site_id: string; student_id: string | null; kind: Exclude<FormKind, 'feedback'>; assessed_on: string; payload: AssessmentPayload; created_by: string | null; updated_at: string };
 export type Feedback = { id: string; site_id: string; ratings: number[]; comment: string };
+export type TimeEntryStatus = 'Open'|'Submitted'|'Approved'|'Needs changes'|'Paid';
+export type TimeEntry = { id: string; user_id: string; work_date: string; clock_in: string; clock_out: string | null; break_minutes: number; note: string; status: TimeEntryStatus; rate_cents: number | null; pay_period_start: string | null; admin_note: string; approved_by: string | null; approved_at: string | null; created_at: string; updated_at: string };
 export function questionsFor(kind: FormKind) { return kind === 'skills' ? skillsStatements : kind === 'dj_review' ? djStatements : kind === 'feedback' ? feedbackStatements : surveyStatements; }
 export function optionsFor(kind: FormKind) { return kind === 'skills' ? ['Not yet', 'With help', 'Independently'] : kind === 'dj_review' ? ['Not observed', 'Starting', 'Growing', 'Consistent', 'Professional-ready'] : kind === 'feedback' ? ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] : ["I can’t yet", 'I kinda can', 'I can']; }
 export function emptyAssessment(kind: FormKind): AssessmentPayload { return {phase:kind==='pre'?'pre':'post',ratings: questionsFor(kind).map(() => null), examples: questionsFor(kind).map(() => ''), next_step: '', strength: '', growth_area: '', artist: '', reviewer: '', setting: '', follow_up: '', reviewer_signature: '', artist_signature: ''}; }
@@ -60,4 +62,17 @@ export function programSummary(students: Student[], evaluations: Evaluation[]) {
   const active = students.filter(s => s.active), ids = new Set(active.map(s=>s.id));
   const complete = evaluations.filter(e=>ids.has(e.student_id) && evaluationComplete(e));
   return { students: active.length, evaluations: complete.length, expected: active.length * 4, allFour: active.filter(s => new Set(complete.filter(e=>e.student_id===s.id).map(e=>e.week)).size===4).length, surveyCompleted: active.filter(s=>s.survey_completed).length, drafts: evaluations.filter(e=>ids.has(e.student_id) && !evaluationComplete(e)).length };
+}
+export function timeEntryHours(entry: Pick<TimeEntry, 'clock_in'|'clock_out'|'break_minutes'>) {
+  if (!entry.clock_out) return 0;
+  const milliseconds = new Date(entry.clock_out).getTime() - new Date(entry.clock_in).getTime();
+  return Math.max(0, milliseconds / 3_600_000 - Math.max(0, entry.break_minutes || 0) / 60);
+}
+export function hoursLabel(hours: number) { return `${hours.toFixed(hours % 1 === 0 ? 0 : 2)} hrs`; }
+export function moneyLabel(cents: number) { return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format((cents || 0) / 100); }
+export function weekStart(date: string) {
+  const local = new Date(`${date}T12:00:00`);
+  const shift = (local.getDay() + 6) % 7;
+  local.setDate(local.getDate() - shift);
+  return local.toISOString().slice(0,10);
 }
