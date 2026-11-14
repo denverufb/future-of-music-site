@@ -1,6 +1,6 @@
 import { safeUrl } from './model.ts';
 export const revenueSources = ['Fundraising','Grants','Corporate Donations','Individual Donations','Membership Fees','Program Fees','Sponsorships','In-Kind Value','Other'];
-export const expenseCategories = ['Program Supplies','Administrative','Insurance','Community Giving','Rentals','Staff/Contractors','Marketing','Food & Refreshments','Transportation','Technology','Printing','Equipment','Fees','Other'];
+export const expenseCategories = ['Program Supplies','Payroll','Staff/Contractors','Administrative','Insurance','Community Giving','Rentals','Marketing','Food & Refreshments','Transportation','Technology','Printing','Equipment','Fees','Other'];
 export const paymentMethods = ['Cash','Check','Card','ACH/Transfer','Online Platform','In-Kind','Other'];
 export const revenueStatuses = ['Pledged','Received','Pending','Cancelled'] as const;
 export type Kind = 'revenue'|'expense';

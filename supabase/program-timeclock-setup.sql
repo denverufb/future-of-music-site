@@ -10,7 +10,6 @@ create table if not exists public.program_time_entries (
   work_date date not null default (timezone('America/Chicago', clock_timestamp()))::date,
   clock_in timestamptz not null default clock_timestamp(),
   clock_out timestamptz,
-  break_minutes integer not null default 0 check (break_minutes between 0 and 480),
   note text not null default '' check (length(note) <= 2000),
   status text not null default 'Open' check (status in ('Open','Submitted','Approved','Needs changes','Paid')),
   rate_cents integer check (rate_cents is null or rate_cents >= 0),
@@ -22,6 +21,9 @@ create table if not exists public.program_time_entries (
   updated_at timestamptz not null default clock_timestamp(),
   check (clock_out is null or clock_out >= clock_in)
 );
+
+-- Older setup versions included a break field. Time is now simple clock-in to clock-out.
+alter table public.program_time_entries drop column if exists break_minutes;
 
 create unique index if not exists one_open_program_time_entry_per_user
   on public.program_time_entries(user_id) where clock_out is null;
@@ -130,7 +132,7 @@ create trigger program_time_entry_guard
 alter table public.program_time_entries enable row level security;
 revoke all on public.program_time_entries from anon, authenticated;
 grant select on public.program_time_entries to authenticated;
-grant update (break_minutes, note, status, rate_cents, pay_period_start, admin_note, approved_by, approved_at) on public.program_time_entries to authenticated;
+grant update (note, status, rate_cents, pay_period_start, admin_note, approved_by, approved_at) on public.program_time_entries to authenticated;
 
 drop policy if exists program_time_owner_all on public.program_time_entries;
 create policy program_time_owner_all on public.program_time_entries

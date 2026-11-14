@@ -17,9 +17,9 @@ test('only fully recorded weeks count; inactive students are excluded',()=>{
   const evaluations=[1,2,3,4].map(week=>({...valid,student_id:'a',week}));evaluations.push({...valid,student_id:'b',week:1,evaluator_role:''},{...valid,student_id:'c',week:1});
   assert.deepEqual(programSummary(students,evaluations),{students:2,evaluations:4,expected:8,allFour:1,surveyCompleted:1,drafts:1});
 });
-test('time entries calculate net hours and payroll labels without treating an open shift as paid time',()=>{
-  const shift={clock_in:'2026-11-09T15:00:00.000Z',clock_out:'2026-11-09T18:30:00.000Z',break_minutes:30};
-  assert.equal(timeEntryHours(shift),3);
+test('time entries calculate simple clocked hours without treating an open shift as paid time',()=>{
+  const shift={clock_in:'2026-11-09T15:00:00.000Z',clock_out:'2026-11-09T18:30:00.000Z'};
+  assert.equal(timeEntryHours(shift),3.5);
   assert.equal(timeEntryHours({...shift,clock_out:null}),0);
   assert.equal(hoursLabel(2.5),'2.50 hrs');
   assert.equal(moneyLabel(1250),'$12.50');

@@ -6,4 +6,6 @@
 
 The time clock now uses each coach’s own account automatically. Coaches cannot view anyone else’s hours or payroll information. The owner’s Time & payroll view provides weekly totals, rate entry, calculated amount owed, approval/paid tracking, and CSV export.
 
+You can run this file again safely. It also removes the former break-time field so hours are a simple clock-in to clock-out total.
+
 This is a private timesheet and payment-tracking tool. Continue to issue payments through your normal payroll or payment process.
