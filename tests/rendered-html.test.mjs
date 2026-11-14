@@ -20,8 +20,6 @@ const routes = [
   ["/programs/dj", /Youth DJ Program/i],
   ["/dj-classes", /Continue to registration/i],
   ["/mentorship", /Mentorship Program/i],
-  ["/programs/artist-development", /Artist Development/i],
-  ["/programs/artist-development/course", /OPEN BETA/i],
   ["/team", /Meet the team\./i],
   ["/team/aereon", /Aereon Robinson/i],
   ["/team/qwentin", /Qwentin Blassingame/i],
@@ -80,7 +78,7 @@ for (const [path, pageText] of routes) {
 
 test("navigation links directly to every main destination", async () => {
   const html = await render();
-  for (const href of ["/about", "/programs/dj", "https://mentoring.fomusic.org", "/team", "/donate", "/blog", "/programs/artist-development"]) {
+  for (const href of ["/about", "/programs/dj", "https://mentoring.fomusic.org", "/team", "/donate", "/blog"]) {
     assert.match(html, new RegExp(`href=\\"${href.replaceAll("/", "\\/")}\\"`));
   }
   assert.doesNotMatch(html, /href="\/programs"/);
@@ -146,28 +144,13 @@ test("DJ program contains the class details and interest form; old URL redirects
   assert.match(previous, /href="\/programs\/dj\/#registration"/);
 });
 
-test("artist development draft is self-paced and contains no video experience", async () => {
-  const academy = await render("/programs/artist-development");
-  assert.match(academy, /Learn through readings, narration, creative activities, and quizzes/i);
-  assert.match(academy, /Artist Development Portfolio/i);
-  assert.match(academy, /100%.*ONLINE.*SELF-PACED/i);
-  assert.doesNotMatch(academy, /\bvideo(s)?\b/i);
-});
-
-test("artist development course includes the complete narration-first beta", async () => {
-  const course = await render("/programs/artist-development/course");
-  const appSource = await readFile(new URL("../app/programs/artist-development/course/CourseApp.tsx", import.meta.url), "utf8");
-  const dataSource = await readFile(new URL("../app/programs/artist-development/course/course-data.ts", import.meta.url), "utf8");
-
-  assert.match(course, /Artist Development Academy/i);
-  assert.match(course, /Your work saves automatically on this device/i);
-  assert.match(course, /Artist Workbook/i);
-  assert.match(appSource, /speechSynthesis/);
-  assert.match(appSource, /Download my workbook/i);
-  assert.match(appSource, /Print or save certificate/i);
-  assert.equal((dataSource.match(/id: "[0-9]-[0-9]+"/g) ?? []).length, 27);
-  assert.equal((dataSource.match(/\bq\(/g) ?? []).length, 54);
-  assert.doesNotMatch(`${course}\n${appSource}\n${dataSource}`, /\bvideo(s)?\b|voice\.ai|translate\.google/i);
+test("former Artist Development Academy URLs direct visitors to current programs", async () => {
+  for (const route of ["/programs/artist-development", "/programs/artist-development/course"]) {
+    const html = await render(route);
+    assert.match(html, /window\.location\.replace\(['"]\/programs\//i);
+    assert.match(html, /href="\/programs\/"/i);
+    assert.doesNotMatch(html, /Artist Development Academy/i);
+  }
 });
 
 test("footer includes the embedded Candid transparency seal", async () => {

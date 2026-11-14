@@ -1,16 +1,24 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { PageShell } from "../../../components/SiteChrome";
-import CourseApp from "./CourseApp";
 
 export const metadata: Metadata = {
-  title: "Artist Development Academy Course | Future of Music",
-  description: "A free, open, self-paced artist development course for young singers, rappers, songwriters, producers, and performers.",
+  title: "Programs | Future of Music",
+  description: "Explore Future of Music programs.",
+  alternates: { canonical: "https://fomusic.org/programs/" },
+  robots: { index: false, follow: true },
 };
 
-export default function ArtistDevelopmentCoursePage() {
+export default function FormerArtistDevelopmentCoursePage() {
   return (
-    <PageShell active="programs" mainClassName="academy-course-page">
-      <CourseApp />
+    <PageShell active="programs" mainClassName="editorial-page">
+      <Script id="former-artist-development-course-redirect" strategy="beforeInteractive">{`window.location.replace('/programs/');`}</Script>
+      <section className="editorial-container mentorship-redirect">
+        <p className="editorial-kicker">Future of Music</p>
+        <h1>Explore our programs.</h1>
+        <p>Find current opportunities for young people through Future of Music.</p>
+        <a className="button" href="/programs/">View programs</a>
+      </section>
     </PageShell>
   );
 }
