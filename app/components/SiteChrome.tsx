@@ -26,7 +26,7 @@ export function SiteHeader({ active }: { active: NavKey }) {
           </NavDropdown>
           <NavDropdown label="Programs" current={active === "programs"}>
               <a href="/programs/dj">Youth DJ Program</a>
-              <a href="https://mentoring.fomusic.org">Mentorship Program ↗</a>
+              <a href="/mentorship/">Mentorship Program ↗</a>
           </NavDropdown>
           <a href="/blog" aria-current={active === "blog" ? "page" : undefined}>Blog</a>
         </nav>
@@ -43,7 +43,7 @@ export function SiteHeader({ active }: { active: NavKey }) {
             <a href="/team">Our Team</a>
             <span className="mobile-menu-label">Programs</span>
             <a href="/programs/dj">Youth DJ Program</a>
-            <a href="https://mentoring.fomusic.org">Mentorship Program ↗</a>
+            <a href="/mentorship/">Mentorship Program ↗</a>
             <a href="/blog">Blog</a>
           </nav>
         </details>
@@ -65,8 +65,8 @@ export function SiteFooter() {
             </a>
           </div>
         </div>
-        <div><h3>Explore</h3><a href="/about">Our Story</a><a href="/team">Our Team</a><a href="/programs/dj">Youth DJ Program</a><a href="https://mentoring.fomusic.org">Mentorship ↗</a><a href="/blog">Blog</a></div>
-        <div><h3>Get involved</h3><a href="/programs/dj/#registration">DJ class registration</a><a href="https://mentoring.fomusic.org">Mentorship application ↗</a><a href="/donate">Donate</a><a href="https://mentoring.fomusic.org">Mentorship portal ↗</a><h3 className="footer-contact-heading">Contact</h3><a href="mailto:info@fomusic.org">info@fomusic.org</a><a href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/" {...external}>Candid transparency profile</a></div>
+        <div><h3>Explore</h3><a href="/about">Our Story</a><a href="/team">Our Team</a><a href="/programs/dj">Youth DJ Program</a><a href="/mentorship/">Mentorship ↗</a><a href="/blog">Blog</a></div>
+        <div><h3>Get involved</h3><a href="/programs/dj/#registration">DJ class registration</a><a href="/mentorship/">Mentorship application ↗</a><a href="/donate">Donate</a><a href="/mentorship/">Mentorship portal ↗</a><h3 className="footer-contact-heading">Contact</h3><a href="mailto:info@fomusic.org">info@fomusic.org</a><a href="https://app.candid.org/profile/16383723/future-of-music-33-4753021/" {...external}>Candid transparency profile</a></div>
       </div>
       <div className="footer-bottom"><p>St. Louis, Missouri · 501(c)(3) nonprofit · EIN 33-4753021</p><p>© 2026 Future of Music</p><a className="footer-tracker" href="/administration-hub/">Administration Hub ↗</a></div>
     </footer>

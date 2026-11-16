@@ -1,1 +1,5 @@
-export { default, metadata } from "../../mentorship/page";
+import { redirect } from "next/navigation";
+
+export default function ProgramMentorshipPage() {
+  redirect("/mentorship/");
+}
