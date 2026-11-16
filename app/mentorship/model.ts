@@ -16,6 +16,7 @@ export type Student = {
   grade: string;
   guardian_name: string;
   guardian_email: string;
+  guardian_phone: string;
   active: boolean;
   created_at: string;
 };
@@ -94,6 +95,22 @@ export type CurriculumItem = {
   published: boolean;
 };
 
+export type ApplicationStatus = "submitted" | "reviewing" | "accepted" | "declined" | "invited";
+
+export type MentorshipApplication = {
+  id: string;
+  full_name: string;
+  student_phone: string;
+  student_email: string;
+  school: string;
+  guardian_name: string;
+  guardian_phone: string;
+  why_participate: string;
+  status: ApplicationStatus;
+  submitted_at: string;
+  updated_at: string;
+};
+
 export type WorkspaceData = {
   profile: Profile;
   students: Student[];
@@ -103,6 +120,7 @@ export type WorkspaceData = {
   grades: Grade[];
   goals: Goal[];
   curriculum: CurriculumItem[];
+  applications: MentorshipApplication[];
 };
 
 export function displayDate(value: string) {

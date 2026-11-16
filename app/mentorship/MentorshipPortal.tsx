@@ -9,12 +9,14 @@ import {
   gradePoint,
   toDateTimeLocal,
   type Assignment,
+  type ApplicationStatus,
   type Cohort,
   type CurriculumItem,
   type Goal,
   type Grade,
   type Meeting,
   type MeetingStudent,
+  type MentorshipApplication,
   type PortalRole,
   type Profile,
   type Student,
@@ -22,7 +24,7 @@ import {
 } from "./model";
 import styles from "./mentorship.module.css";
 
-type View = "today" | "meetings" | "students" | "curriculum" | "reports" | "setup";
+type View = "today" | "meetings" | "students" | "curriculum" | "reports" | "applications" | "setup";
 type MeetingDraft = {
   id?: string;
   meeting_at: string;
@@ -232,33 +234,38 @@ export default function MentorshipPortal() {
       let meetings: Meeting[] = [];
       let grades: Grade[] = [];
       let goals: Goal[] = [];
+      let applications: MentorshipApplication[] = [];
       const isProgramLead = profile.role === "admin" || profile.role === "supervisor";
 
       if (isProgramLead) {
-        const [studentsResult, assignmentsResult, meetingsResult, gradesResult, goalsResult] = await Promise.all([
-          client.from("mentorship_students").select("id,account_id,full_name,school,grade,guardian_name,guardian_email,active,created_at").order("full_name"),
-          client.from("mentorship_assignments").select("id,mentor_id,student_id,cohort_id,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,active,created_at),cohort:mentorship_cohorts(id,title,starts_on,ends_on,active)"),
-          client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,location,shared_notes,status,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,active,created_at))").order("meeting_at", { ascending: false }),
+        const [studentsResult, assignmentsResult, meetingsResult, gradesResult, goalsResult, applicationsResult] = await Promise.all([
+          client.from("mentorship_students").select("id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at").order("full_name"),
+          client.from("mentorship_assignments").select("id,mentor_id,student_id,cohort_id,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at),cohort:mentorship_cohorts(id,title,starts_on,ends_on,active)"),
+          client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,location,shared_notes,status,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at))").order("meeting_at", { ascending: false }),
           client.from("mentorship_grades").select("id,student_id,subject,letter_grade,percentage,missing_assignments,reported_on").order("reported_on", { ascending: false }),
           client.from("mentorship_goals").select("id,student_id,title,detail,status,target_date,updated_at").order("updated_at", { ascending: false }),
+          profile.role === "admin"
+            ? client.from("mentorship_applications").select("id,full_name,student_phone,student_email,school,guardian_name,guardian_phone,why_participate,status,submitted_at,updated_at").order("submitted_at", { ascending: false })
+            : Promise.resolve({ data: [], error: null }),
         ]);
-        for (const result of [studentsResult, assignmentsResult, meetingsResult, gradesResult, goalsResult]) if (result.error) throw result.error;
+        for (const result of [studentsResult, assignmentsResult, meetingsResult, gradesResult, goalsResult, applicationsResult]) if (result.error) throw result.error;
         students = (studentsResult.data || []) as Student[];
         assignments = relationshipRows(assignmentsResult.data);
         meetings = meetingRows(meetingsResult.data);
         grades = (gradesResult.data || []) as Grade[];
         goals = (goalsResult.data || []) as Goal[];
+        applications = (applicationsResult.data || []) as MentorshipApplication[];
       } else if (profile.role === "mentor") {
         const { data: assignmentData, error: assignmentError } = await client
           .from("mentorship_assignments")
-          .select("id,mentor_id,student_id,cohort_id,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,active,created_at),cohort:mentorship_cohorts(id,title,starts_on,ends_on,active)")
+          .select("id,mentor_id,student_id,cohort_id,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at),cohort:mentorship_cohorts(id,title,starts_on,ends_on,active)")
           .eq("mentor_id", session.user.id);
         if (assignmentError) throw assignmentError;
         assignments = relationshipRows(assignmentData);
         students = assignments.map((assignment) => assignment.student).filter((student): student is Student => Boolean(student));
         const studentIds = students.map((student) => student.id);
         const [meetingsResult, gradesResult, goalsResult] = await Promise.all([
-          client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,location,shared_notes,status,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,active,created_at))").eq("mentor_id", session.user.id).order("meeting_at", { ascending: false }),
+          client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,location,shared_notes,status,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at))").eq("mentor_id", session.user.id).order("meeting_at", { ascending: false }),
           studentIds.length ? client.from("mentorship_grades").select("id,student_id,subject,letter_grade,percentage,missing_assignments,reported_on").in("student_id", studentIds).order("reported_on", { ascending: false }) : Promise.resolve({ data: [], error: null }),
           studentIds.length ? client.from("mentorship_goals").select("id,student_id,title,detail,status,target_date,updated_at").in("student_id", studentIds).order("updated_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
         ]);
@@ -269,7 +276,7 @@ export default function MentorshipPortal() {
       } else {
         const { data: studentData, error: studentError } = await client
           .from("mentorship_students")
-          .select("id,account_id,full_name,school,grade,guardian_name,guardian_email,active,created_at")
+          .select("id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at")
           .eq("account_id", session.user.id)
           .maybeSingle();
         if (studentError) throw studentError;
@@ -277,7 +284,7 @@ export default function MentorshipPortal() {
         const studentId = studentData?.id;
         if (studentId) {
           const [meetingsResult, gradesResult, goalsResult, assignmentResult] = await Promise.all([
-            client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,location,shared_notes,status,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,active,created_at))").order("meeting_at", { ascending: false }),
+            client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,location,shared_notes,status,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at))").order("meeting_at", { ascending: false }),
             client.from("mentorship_grades").select("id,student_id,subject,letter_grade,percentage,missing_assignments,reported_on").eq("student_id", studentId).order("reported_on", { ascending: false }),
             client.from("mentorship_goals").select("id,student_id,title,detail,status,target_date,updated_at").eq("student_id", studentId).order("updated_at", { ascending: false }),
             client.from("mentorship_assignments").select("id,mentor_id,student_id,cohort_id,cohort:mentorship_cohorts(id,title,starts_on,ends_on,active)").eq("student_id", studentId),
@@ -302,6 +309,7 @@ export default function MentorshipPortal() {
         grades,
         goals,
         curriculum: (curriculumResult.data?.length ? curriculumResult.data : defaultCurriculum) as CurriculumItem[],
+        applications,
       });
     } catch (issue) {
       setData(null);
@@ -394,6 +402,7 @@ export default function MentorshipPortal() {
         grade: String(form.get("grade") || "").trim(),
         guardian_name: String(form.get("guardian_name") || "").trim(),
         guardian_email: String(form.get("guardian_email") || "").trim(),
+        guardian_phone: String(form.get("guardian_phone") || "").trim(),
       });
       if (saveError) throw saveError;
       setShowStudentForm(false);
@@ -444,6 +453,7 @@ export default function MentorshipPortal() {
     { id: "students", label: role !== "mentee" ? "Students" : "My profile", visible: true },
     { id: "curriculum", label: "Curriculum", visible: true },
     { id: "reports", label: "Reports", visible: role === "admin" || role === "supervisor" },
+    { id: "applications", label: "Applications", visible: role === "admin" },
     { id: "setup", label: "Program setup", visible: role === "admin" },
   ];
 
@@ -467,10 +477,11 @@ export default function MentorshipPortal() {
         {view === "students" && <StudentsView students={data.students} assignments={data.assignments} grades={data.grades} goals={data.goals} canManage={Boolean(canManage)} isAdmin={Boolean(isAdmin)} selected={selectedStudent} setSelected={setSelectedStudentId} onNew={() => setShowStudentForm(true)} onSaveGrade={saveGrade} saving={saving} />}
         {view === "curriculum" && <CurriculumView items={data.curriculum} role={role} />}
         {view === "reports" && <ReportsView data={data} />}
+        {view === "applications" && <ApplicationsView data={data} onRefresh={load} setError={setError} setNotice={setNotice} />}
         {view === "setup" && <SetupView data={data} />}
       </main>
     </div>
-    {showStudentForm && <Modal title="Add a student" onClose={() => setShowStudentForm(false)}><form className={styles.form} onSubmit={createStudent}><label>Student name<input required name="full_name" autoComplete="name" /></label><label>School<input required name="school" /></label><label>Grade<input required name="grade" placeholder="Example: 8th grade" /></label><label>Guardian name<input name="guardian_name" /></label><label>Guardian email<input name="guardian_email" type="email" /></label><button className={styles.primaryButton} disabled={saving}>{saving ? "Saving…" : "Add student"}</button></form></Modal>}
+    {showStudentForm && <Modal title="Add a student" onClose={() => setShowStudentForm(false)}><form className={styles.form} onSubmit={createStudent}><label>Student name<input required name="full_name" autoComplete="name" /></label><label>School<input required name="school" /></label><label>Grade<input required name="grade" placeholder="Example: 8th grade" /></label><label>Guardian name<input name="guardian_name" /></label><label>Guardian phone<input name="guardian_phone" type="tel" /></label><label>Guardian email<input name="guardian_email" type="email" /></label><button className={styles.primaryButton} disabled={saving}>{saving ? "Saving…" : "Add student"}</button></form></Modal>}
   </div>;
 }
 
@@ -551,8 +562,66 @@ function ReportsView({ data }: { data: WorkspaceData }) {
   return <><section className={styles.heading}><div><p>REPORTS</p><h1>Program snapshot.</h1><span>Current enrollment, meeting activity, and exportable records.</span></div></section><section className={styles.metrics}><div><span>STUDENTS</span><strong>{data.students.length}</strong></div><div><span>MENTORS</span><strong>{new Set(data.assignments.map((assignment) => assignment.mentor_id)).size}</strong></div><div><span>MEETINGS</span><strong>{completed.length}</strong></div><div><span>HOURS</span><strong>{hours.toFixed(1)}</strong></div></section><section className={styles.reportActions}><article><p>STUDENT PROFILES</p><h2>Enrollment & profile records</h2><span>Names, schools, grades, and active status.</span><button className={styles.secondaryButton} onClick={exportStudents}>Export CSV</button></article><article><p>MEETING RECORDS</p><h2>Meeting notes & follow-up</h2><span>Participants, length, status, and shared notes.</span><button className={styles.secondaryButton} onClick={exportMeetings}>Export CSV</button></article></section></>;
 }
 
+function ApplicationsView({ data, onRefresh, setError, setNotice }: { data: WorkspaceData; onRefresh: () => Promise<void>; setError: (message: string) => void; setNotice: (message: string) => void }) {
+  const [selectedId, setSelectedId] = useState<string | null>(data.applications[0]?.id || null);
+  const [inviteRole, setInviteRole] = useState<Exclude<PortalRole, "admin">>("mentee");
+  const [busy, setBusy] = useState(false);
+  const selected = data.applications.find((application) => application.id === selectedId) || null;
+
+  async function updateStatus(status: ApplicationStatus) {
+    if (!selected) return;
+    setBusy(true); setError("");
+    const { error: issue } = await getMentorshipClient().from("mentorship_applications").update({ status }).eq("id", selected.id);
+    if (issue) setError(errorText(issue)); else { setNotice("Application status updated."); await onRefresh(); }
+    setBusy(false);
+  }
+
+  async function createStudent(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!selected) return;
+    const form = new FormData(event.currentTarget);
+    setBusy(true); setError("");
+    const { error: issue } = await getMentorshipClient().from("mentorship_students").insert({
+      full_name: selected.full_name,
+      school: selected.school,
+      grade: String(form.get("grade") || "").trim(),
+      guardian_name: selected.guardian_name,
+      guardian_email: "",
+      guardian_phone: selected.guardian_phone,
+    });
+    if (issue) setError(errorText(issue)); else { setNotice(`${selected.full_name} was added to participant records.`); await onRefresh(); }
+    setBusy(false);
+  }
+
+  async function invite(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const studentId = String(form.get("student_id") || "");
+    setBusy(true); setError("");
+    const { data: result, error: issue } = await getMentorshipClient().functions.invoke("invite-mentorship-user", {
+      body: {
+        name: String(form.get("name") || "").trim(),
+        email: String(form.get("email") || "").trim().toLowerCase(),
+        role: inviteRole,
+        student_id: inviteRole === "mentee" ? studentId : null,
+      },
+    });
+    const message = issue ? issue.message : (result as { error?: string } | null)?.error;
+    if (message) {
+      setError(message);
+    } else {
+      if (selected) await getMentorshipClient().from("mentorship_applications").update({ status: "invited" }).eq("id", selected.id);
+      setNotice("Invitation sent. They will receive an email to create their secure sign-in.");
+      await onRefresh();
+    }
+    setBusy(false);
+  }
+
+  return <><section className={styles.heading}><div><p>APPLICATIONS</p><h1>New mentorship interest.</h1><span>Review submitted applications, build a participant record, and send secure portal invitations when someone is ready.</span></div></section><section className={styles.applicationLayout}><div className={styles.applicationList}>{data.applications.map((application) => <button key={application.id} type="button" onClick={() => setSelectedId(application.id)} aria-current={selected?.id === application.id ? "true" : undefined}><span><strong>{application.full_name}</strong><small>{application.school} · {displayDate(application.submitted_at)}</small></span><em>{application.status}</em></button>)}{!data.applications.length && <p className={styles.empty}>No applications have been submitted yet.</p>}</div>{selected && <div className={styles.applicationDetail}><div className={styles.applicationDetailHeader}><div><p>APPLICATION</p><h2>{selected.full_name}</h2><span>{selected.school} · received {displayDate(selected.submitted_at)}</span></div><label>Status<select value={selected.status} disabled={busy} onChange={(event) => void updateStatus(event.target.value as ApplicationStatus)}><option value="submitted">Submitted</option><option value="reviewing">Reviewing</option><option value="accepted">Accepted</option><option value="declined">Declined</option><option value="invited">Invited</option></select></label></div><div className={styles.applicationContact}><div><span>Student phone</span><strong>{selected.student_phone}</strong></div><div><span>Student email</span><strong>{selected.student_email}</strong></div><div><span>Guardian</span><strong>{selected.guardian_name}</strong></div><div><span>Guardian phone</span><strong>{selected.guardian_phone}</strong></div></div><section className={styles.applicationReason}><p>WHY THEY WANT TO PARTICIPATE</p><p>{selected.why_participate}</p></section><div className={styles.applicationActions}><section><p>PARTICIPANT RECORD</p><h3>Add to the cohort roster</h3><span>Create their participant record first. Grade is kept here because it is helpful for matching and progress tracking.</span><form className={styles.inviteForm} onSubmit={createStudent}><label>Current grade<input required name="grade" placeholder="Example: 8th grade" /></label><button className={styles.secondaryButton} disabled={busy}>Add participant</button></form></section><section><p>PORTAL INVITATION</p><h3>Send secure access</h3><span>Supabase emails an invitation so the person can create their own password. Mentees must be linked to an existing participant record.</span><form className={styles.inviteForm} key={`${selected.id}-${inviteRole}`} onSubmit={invite}><label>Name<input required name="name" defaultValue={selected.full_name} /></label><label>Email<input required name="email" type="email" defaultValue={selected.student_email} /></label><label>Access type<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as Exclude<PortalRole, "admin">)}><option value="mentee">Mentee</option><option value="mentor">Mentor</option><option value="supervisor">Supervisor</option></select></label>{inviteRole === "mentee" && <label>Participant record<select required name="student_id" defaultValue=""><option value="" disabled>Select the student record</option>{data.students.filter((student) => !student.account_id).map((student) => <option key={student.id} value={student.id}>{student.full_name} · {student.grade || "grade not set"}</option>)}</select></label>}<button className={styles.primaryButton} disabled={busy}>{busy ? "Sending…" : "Email invitation"}</button></form></section></div></div>}</section></>;
+}
+
 function SetupView({ data }: { data: WorkspaceData }) {
-  return <><section className={styles.heading}><div><p>PROGRAM SETUP</p><h1>People and cohorts.</h1><span>Add mentor accounts in Supabase first, then connect them to student records here.</span></div></section><section className={styles.listSection}><p>COHORTS</p>{data.cohorts.map((cohort) => <div className={styles.setupRow} key={cohort.id}><strong>{cohort.title}</strong><span>{displayDate(cohort.starts_on)} — {displayDate(cohort.ends_on)}</span><em>{cohort.active ? "Active" : "Closed"}</em></div>)}{!data.cohorts.length && <p className={styles.empty}>Create your first cohort in Supabase to begin matching students.</p>}</section></>;
+  return <><section className={styles.heading}><div><p>PROGRAM SETUP</p><h1>Cohorts and matching.</h1><span>Keep the cycle dates current here. Applications and secure user invitations are managed from the Applications tab.</span></div></section><section className={styles.listSection}><p>COHORTS</p>{data.cohorts.map((cohort) => <div className={styles.setupRow} key={cohort.id}><strong>{cohort.title}</strong><span>{displayDate(cohort.starts_on)} — {displayDate(cohort.ends_on)}</span><em>{cohort.active ? "Active" : "Closed"}</em></div>)}{!data.cohorts.length && <p className={styles.empty}>Create your first cohort in Supabase to begin matching students.</p>}</section></>;
 }
 
 function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
