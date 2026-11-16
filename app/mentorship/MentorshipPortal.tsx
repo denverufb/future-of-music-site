@@ -4,9 +4,12 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react
 import type { Session } from "@supabase/supabase-js";
 import { getMentorshipClient } from "./client";
 import {
+  curriculumForStudent,
   displayDate,
   displayTime,
   gradePoint,
+  meetingNumberForRecord,
+  meetingNumberForStudent,
   toDateTimeLocal,
   type Assignment,
   type ApplicationStatus,
@@ -22,6 +25,7 @@ import {
   type Student,
   type WorkspaceData,
 } from "./model";
+import { fullCurriculum } from "./curriculum-data";
 import styles from "./mentorship.module.css";
 
 type View = "today" | "meetings" | "students" | "curriculum" | "reports" | "applications" | "setup";
@@ -33,73 +37,22 @@ type MeetingDraft = {
   shared_notes: string;
   status: "scheduled" | "complete" | "cancelled";
   studentIds: string[];
-  individual: Record<string, Pick<MeetingStudent, "attendance" | "personal_notes" | "goal" | "progress">>;
+  individual: Record<string, Pick<MeetingStudent, "meeting_number" | "attendance" | "personal_notes" | "goal" | "progress">>;
 };
 
-const defaultCurriculum: CurriculumItem[] = [
-  {
-    id: "preview-academic",
-    track: "Academic readiness",
-    meeting_number: 1,
-    title: "Check in, organize, and make a plan",
-    start_prompt: "What feels most important in school right now?",
-    discussion_questions: ["What is going well?", "What needs attention this week?", "What support would be useful?"],
-    activity: "Review current grades, missing work, and one realistic next step.",
-    resources: ["Grade tracker", "School portal"],
-    action_item: "Choose one action to complete before the next meeting.",
-    published: true,
-  },
-  {
-    id: "preview-personal",
-    track: "Personal leadership",
-    meeting_number: 1,
-    title: "Confidence, communication, and showing up",
-    start_prompt: "Where have you been proud of yourself lately?",
-    discussion_questions: ["What does confidence look like in practice?", "How do you ask for help?", "What is one new situation you can try?"],
-    activity: "Practice a short introduction and one way to communicate a need.",
-    resources: ["Reflection prompt", "Goal planner"],
-    action_item: "Try one communication habit this week and reflect on it.",
-    published: true,
-  },
-  {
-    id: "preview-career",
-    track: "Career & future planning",
-    meeting_number: 1,
-    title: "Explore options and make a next-step plan",
-    start_prompt: "What are you curious to learn more about?",
-    discussion_questions: ["What strengths do you notice in yourself?", "What careers or opportunities connect to them?", "What is one question you want answered?"],
-    activity: "Map one interest to a role, skill, or experience worth exploring.",
-    resources: ["Career interest list", "Local opportunity search"],
-    action_item: "Research one role, program, or person before the next meeting.",
-    published: true,
-  },
-  {
-    id: "preview-enterprise",
-    track: "Entrepreneurship",
-    meeting_number: 1,
-    title: "Turn an idea into a useful first step",
-    start_prompt: "What problem would you enjoy helping solve?",
-    discussion_questions: ["Who would your idea help?", "What resources would it need?", "What small test could you try first?"],
-    activity: "Sketch the audience, value, and first action for one idea.",
-    resources: ["Idea canvas", "Simple budget worksheet"],
-    action_item: "Share your idea with one trusted person and write down what you learn.",
-    published: true,
-  },
-];
-
-function blankIndividual(): MeetingDraft["individual"][string] {
-  return { attendance: "present", personal_notes: "", goal: "", progress: "on_track" };
+function blankIndividual(meetingNumber = 1): MeetingDraft["individual"][string] {
+  return { meeting_number: meetingNumber, attendance: "present", personal_notes: "", goal: "", progress: "on_track" };
 }
 
-function freshDraft(students: Student[], meeting?: Meeting): MeetingDraft {
+function freshDraft(students: Student[], meetings: Meeting[], meeting?: Meeting): MeetingDraft {
   const current = meeting?.meeting_students || [];
   const studentIds = current.length ? current.map((item) => item.student_id) : students.slice(0, 1).map((student) => student.id);
   const individual: MeetingDraft["individual"] = {};
   studentIds.forEach((studentId) => {
     const saved = current.find((item) => item.student_id === studentId);
     individual[studentId] = saved
-      ? { attendance: saved.attendance, personal_notes: saved.personal_notes, goal: saved.goal, progress: saved.progress }
-      : blankIndividual();
+      ? { meeting_number: saved.meeting_number || (meeting ? meetingNumberForRecord(studentId, meeting.id, meetings) : meetingNumberForStudent(studentId, meetings)), attendance: saved.attendance, personal_notes: saved.personal_notes, goal: saved.goal, progress: saved.progress }
+      : blankIndividual(meetingNumberForStudent(studentId, meetings));
   });
   return {
     id: meeting?.id,
@@ -235,6 +188,7 @@ export default function MentorshipPortal() {
       let grades: Grade[] = [];
       let goals: Goal[] = [];
       let applications: MentorshipApplication[] = [];
+      let team: Profile[] = [profile];
       const isProgramLead = profile.role === "admin" || profile.role === "supervisor";
 
       if (isProgramLead) {
@@ -255,6 +209,9 @@ export default function MentorshipPortal() {
         grades = (gradesResult.data || []) as Grade[];
         goals = (goalsResult.data || []) as Goal[];
         applications = (applicationsResult.data || []) as MentorshipApplication[];
+        const { data: teamData, error: teamError } = await client.from("mentorship_profiles").select("user_id,display_name,email,role,active").eq("active", true).order("display_name");
+        if (teamError) throw teamError;
+        team = (teamData || [profile]) as Profile[];
       } else if (profile.role === "mentor") {
         const { data: assignmentData, error: assignmentError } = await client
           .from("mentorship_assignments")
@@ -302,13 +259,14 @@ export default function MentorshipPortal() {
       if (cohortsResult.error) throw cohortsResult.error;
       setData({
         profile,
+        team,
         students,
         cohorts: (cohortsResult.data || []) as Cohort[],
         assignments,
         meetings,
         grades,
         goals,
-        curriculum: (curriculumResult.data?.length ? curriculumResult.data : defaultCurriculum) as CurriculumItem[],
+        curriculum: ((curriculumResult.data?.length || 0) >= fullCurriculum.length ? curriculumResult.data : fullCurriculum) as CurriculumItem[],
         applications,
       });
     } catch (issue) {
@@ -328,7 +286,7 @@ export default function MentorshipPortal() {
 
   function openMeeting(meeting?: Meeting) {
     if (!data) return;
-    setMeetingDraft(freshDraft(data.students, meeting));
+    setMeetingDraft(freshDraft(data.students.filter((student) => student.active), data.meetings, meeting));
     setView("meetings");
     setError("");
     setNotice("");
@@ -372,11 +330,10 @@ export default function MentorshipPortal() {
       if (saveError) throw saveError;
       const { error: clearError } = await client.from("mentorship_meeting_students").delete().eq("meeting_id", savedMeeting.id);
       if (clearError) throw clearError;
-      const attendanceRows = meetingDraft.studentIds.map((studentId) => ({
-        meeting_id: savedMeeting.id,
-        student_id: studentId,
-        ...(meetingDraft.individual[studentId] || blankIndividual()),
-      }));
+      const attendanceRows = meetingDraft.studentIds.map((studentId) => {
+        const { meeting_number: _meetingNumber, ...studentRecord } = meetingDraft.individual[studentId] || blankIndividual();
+        return { meeting_id: savedMeeting.id, student_id: studentId, ...studentRecord };
+      });
       const { error: attendeeError } = await client.from("mentorship_meeting_students").insert(attendanceRows);
       if (attendeeError) throw attendeeError;
       setMeetingDraft(null);
@@ -474,9 +431,9 @@ export default function MentorshipPortal() {
         {notice && <div className={styles.notice} role="status">{notice}</div>}
         {view === "today" && <TodayView name={profileName} role={role} students={data.students} meetings={data.meetings} goals={data.goals} onNewMeeting={() => openMeeting()} onOpenMeeting={openMeeting} onStudents={() => changeView("students")} />}
         {view === "meetings" && (meetingDraft ? <MeetingEditor data={data} draft={meetingDraft} setDraft={setMeetingDraft} saving={saving} onSave={saveMeeting} onClose={() => setMeetingDraft(null)} /> : <MeetingsView meetings={data.meetings} students={data.students} canManage={Boolean(canManage)} onNew={() => openMeeting()} onOpen={openMeeting} />)}
-        {view === "students" && <StudentsView students={data.students} assignments={data.assignments} grades={data.grades} goals={data.goals} canManage={Boolean(canManage)} isAdmin={Boolean(isAdmin)} selected={selectedStudent} setSelected={setSelectedStudentId} onNew={() => setShowStudentForm(true)} onSaveGrade={saveGrade} saving={saving} />}
+        {view === "students" && <StudentProfileView students={data.students} assignments={data.assignments} meetings={data.meetings} grades={data.grades} goals={data.goals} canManage={Boolean(canManage)} isAdmin={Boolean(isAdmin)} selected={selectedStudent} setSelected={setSelectedStudentId} onNew={() => setShowStudentForm(true)} onSaveGrade={saveGrade} saving={saving} />}
         {view === "curriculum" && <CurriculumView items={data.curriculum} role={role} />}
-        {view === "reports" && <ReportsView data={data} />}
+        {view === "reports" && <ReportingView data={data} />}
         {view === "applications" && <ApplicationsView data={data} onRefresh={load} setError={setError} setNotice={setNotice} />}
         {view === "setup" && <SetupView data={data} />}
       </main>
@@ -514,7 +471,8 @@ function SetupState({ error, onRetry, onSignOut }: { error: string; onRetry: () 
 function TodayView({ name, role, students, meetings, goals, onNewMeeting, onOpenMeeting, onStudents }: { name: string; role: PortalRole; students: Student[]; meetings: Meeting[]; goals: Goal[]; onNewMeeting: () => void; onOpenMeeting: (meeting: Meeting) => void; onStudents: () => void }) {
   const nextMeeting = meetings.filter((meeting) => new Date(meeting.meeting_at) >= new Date() && meeting.status !== "cancelled").sort((a, b) => a.meeting_at.localeCompare(b.meeting_at))[0];
   const activeGoals = goals.filter((goal) => goal.status === "active");
-  return <><section className={styles.heading}><div><p>TODAY</p><h1>{role === "mentee" ? `Welcome back, ${name}.` : `Good to see you, ${name}.`}</h1><span>{role === "mentor" ? "Start a meeting, review students, or pick up where you left off." : "Your mentorship space, in one place."}</span></div>{role !== "mentee" && <button className={styles.primaryButton} onClick={onNewMeeting}>Start a meeting <b>→</b></button>}</section><section className={styles.focusGrid}><article className={styles.focus}><p>NEXT MEETING</p>{nextMeeting ? <><strong>{displayDate(nextMeeting.meeting_at)}</strong><h2>{nextMeeting.meeting_students?.map((item) => item.student?.full_name || "Student").join(" + ") || "Mentorship meeting"}</h2><span>{displayTime(nextMeeting.meeting_at)} · {nextMeeting.duration_minutes} minutes</span><button className={styles.textButton} onClick={() => onOpenMeeting(nextMeeting)}>Open meeting →</button></> : <><h2>No meeting scheduled.</h2><span>When one is scheduled, it will appear here.</span></>}</article><article className={styles.summary}><p>{role === "mentor" ? "YOUR STUDENTS" : "YOUR PROGRESS"}</p><strong>{role === "mentor" ? students.length : meetings.filter((meeting) => meeting.status === "complete").length}</strong><span>{role === "mentor" ? "students currently assigned" : "meetings completed"}</span><button className={styles.textButton} onClick={onStudents}>{role === "mentor" ? "Open students →" : "View my profile →"}</button></article><article className={styles.summary}><p>ACTIVE GOALS</p><strong>{activeGoals.length}</strong><span>{activeGoals[0]?.title || "No goal needs attention right now."}</span></article></section><section className={styles.listSection}><div className={styles.sectionTitle}><div><p>MEETINGS</p><h2>Recent and upcoming</h2></div></div><MeetingRows meetings={meetings.slice(0, 6)} onOpen={onOpenMeeting} /></section></>;
+  const staffView = role !== "mentee";
+  return <><section className={styles.heading}><div><p>TODAY</p><h1>{role === "mentee" ? `Welcome back, ${name}.` : `Good to see you, ${name}.`}</h1><span>{staffView ? "Start a meeting, review students, or pick up where you left off." : "Your mentorship space, in one place."}</span></div>{staffView && <button className={styles.primaryButton} onClick={onNewMeeting}>Start a meeting <b>→</b></button>}</section><section className={styles.focusGrid}><article className={styles.focus}><p>NEXT MEETING</p>{nextMeeting ? <><strong>{displayDate(nextMeeting.meeting_at)}</strong><h2>{nextMeeting.meeting_students?.map((item) => item.student?.full_name || "Student").join(" + ") || "Mentorship meeting"}</h2><span>{displayTime(nextMeeting.meeting_at)} · {nextMeeting.duration_minutes} minutes</span><button className={styles.textButton} onClick={() => onOpenMeeting(nextMeeting)}>Open meeting →</button></> : <><h2>No meeting scheduled.</h2><span>When one is scheduled, it will appear here.</span></>}</article><article className={styles.summary}><p>{staffView ? "ACTIVE STUDENTS" : "YOUR PROGRESS"}</p><strong>{staffView ? students.length : meetings.filter((meeting) => meeting.status === "complete").length}</strong><span>{staffView ? "students in the current workspace" : "meetings completed"}</span><button className={styles.textButton} onClick={onStudents}>{staffView ? "Open students →" : "View my profile →"}</button></article><article className={styles.summary}><p>ACTIVE GOALS</p><strong>{activeGoals.length}</strong><span>{activeGoals[0]?.title || "No goal needs attention right now."}</span></article></section><section className={styles.listSection}><div className={styles.sectionTitle}><div><p>MEETINGS</p><h2>Recent and upcoming</h2></div></div><MeetingRows meetings={meetings.slice(0, 6)} onOpen={onOpenMeeting} /></section></>;
 }
 
 function MeetingsView({ meetings, students, canManage, onNew, onOpen }: { meetings: Meeting[]; students: Student[]; canManage: boolean; onNew: () => void; onOpen: (meeting: Meeting) => void }) {
@@ -531,15 +489,25 @@ function MeetingEditor({ data, draft, setDraft, saving, onSave, onClose }: { dat
     const selected = draft.studentIds.includes(studentId);
     const studentIds = selected ? draft.studentIds.filter((id) => id !== studentId) : [...draft.studentIds, studentId];
     const individual = { ...draft.individual };
-    if (!selected) individual[studentId] = blankIndividual();
+    if (!selected) individual[studentId] = blankIndividual(meetingNumberForStudent(studentId, data.meetings));
     setDraft({ ...draft, studentIds, individual });
   }
   function updateIndividual(studentId: string, key: keyof MeetingDraft["individual"][string], value: string) {
     setDraft({ ...draft, individual: { ...draft.individual, [studentId]: { ...(draft.individual[studentId] || blankIndividual()), [key]: value } } });
   }
   const selectedStudents = data.students.filter((student) => draft.studentIds.includes(student.id));
-  const curriculum = data.curriculum.length ? data.curriculum : defaultCurriculum;
-  return <><section className={styles.editorHeading}><div><button className={styles.textButton} type="button" onClick={onClose}>← Back to meetings</button><p>MEETING</p><h1>{draft.id ? "Update meeting" : "Start a meeting"}</h1><span>Keep the meeting centered on the student. All curriculum tracks stay available on the right.</span></div></section><form className={styles.meetingLayout} onSubmit={onSave}><section className={styles.editor}><div className={styles.editorTop}><label>Date & time<input required type="datetime-local" value={draft.meeting_at} onChange={(event) => setDraft({ ...draft, meeting_at: event.target.value })} /></label><label>Length<select value={draft.duration_minutes} onChange={(event) => setDraft({ ...draft, duration_minutes: Number(event.target.value) })}><option value={30}>30 minutes</option><option value={45}>45 minutes</option><option value={60}>1 hour</option><option value={90}>1½ hours</option></select></label><label>Location<select value={draft.location} onChange={(event) => setDraft({ ...draft, location: event.target.value as MeetingDraft["location"] })}><option value="virtual">Virtual</option><option value="in_person">In person</option><option value="phone">Phone</option></select></label></div><fieldset className={styles.studentPicker}><legend>STUDENTS</legend>{data.students.map((student) => <label key={student.id}><input type="checkbox" checked={draft.studentIds.includes(student.id)} onChange={() => toggleStudent(student.id)} />{student.full_name}<small>{student.grade} · {student.school}</small></label>)}</fieldset><label className={styles.fullField}>Shared meeting notes<textarea value={draft.shared_notes} onChange={(event) => setDraft({ ...draft, shared_notes: event.target.value })} placeholder="What did you talk about, decide, or plan together?" /></label><div className={styles.individualRecords}><div className={styles.sectionTitle}><div><p>INDIVIDUAL FOLLOW-UP</p><h2>Each student’s record</h2></div></div>{selectedStudents.map((student) => { const individual = draft.individual[student.id] || blankIndividual(); return <details key={student.id} open><summary><strong>{student.full_name}</strong><span>{student.grade} · {student.school}</span></summary><div className={styles.individualFields}><label>Attendance<select value={individual.attendance} onChange={(event) => updateIndividual(student.id, "attendance", event.target.value)}><option value="present">Present</option><option value="absent">Absent</option><option value="rescheduled">Rescheduled</option></select></label><label>Progress<select value={individual.progress} onChange={(event) => updateIndividual(student.id, "progress", event.target.value)}><option value="on_track">On track</option><option value="needs_support">Needs support</option><option value="complete">Goal complete</option></select></label><label>Private note<textarea value={individual.personal_notes} onChange={(event) => updateIndividual(student.id, "personal_notes", event.target.value)} placeholder="Notes only this student should carry forward." /></label><label>Next goal<input value={individual.goal} onChange={(event) => updateIndividual(student.id, "goal", event.target.value)} placeholder="A clear, student-created next step" /></label></div></details>; })}</div><div className={styles.saveRow}><label>Status<select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as MeetingDraft["status"] })}><option value="complete">Complete</option><option value="scheduled">Scheduled</option><option value="cancelled">Cancelled</option></select></label><button type="button" className={styles.secondaryButton} onClick={onClose}>Cancel</button><button className={styles.primaryButton} disabled={saving}>{saving ? "Saving…" : "Save meeting"}</button></div></section><aside className={styles.curriculumRail}><p>CURRICULUM</p><h2>Use what fits the conversation.</h2><span>There is no required single track for a meeting.</span>{curriculum.map((item) => <details key={item.id}><summary><strong>{item.track}</strong><span>{item.title}</span></summary><div><p><b>Start</b>{item.start_prompt}</p><p><b>Questions</b>{item.discussion_questions.map((question) => `• ${question}`).join("\n")}</p><p><b>Activity</b>{item.activity}</p><p><b>Action item</b>{item.action_item}</p>{item.resources.length > 0 && <p><b>Resources</b>{item.resources.join(" · ")}</p>}</div></details>)}</aside></form></>;
+  const curriculum = data.curriculum.length ? data.curriculum : fullCurriculum;
+  return <><section className={styles.editorHeading}><div><button className={styles.textButton} type="button" onClick={onClose}>← Back to meetings</button><p>MEETING</p><h1>{draft.id ? "Update meeting" : "Start a meeting"}</h1><span>Notes stay on the left. Each student’s next curriculum guide is open on the right—without locking the conversation into one track.</span></div></section><form className={styles.meetingLayout} onSubmit={onSave}><section className={styles.editor}><div className={styles.editorTop}><label>Date & time<input required type="datetime-local" value={draft.meeting_at} onChange={(event) => setDraft({ ...draft, meeting_at: event.target.value })} /></label><label>Length<select value={draft.duration_minutes} onChange={(event) => setDraft({ ...draft, duration_minutes: Number(event.target.value) })}><option value={30}>30 minutes</option><option value={45}>45 minutes</option><option value={60}>1 hour</option><option value={90}>1½ hours</option></select></label><label>Location<select value={draft.location} onChange={(event) => setDraft({ ...draft, location: event.target.value as MeetingDraft["location"] })}><option value="virtual">Virtual</option><option value="in_person">In person</option><option value="phone">Phone</option></select></label></div><fieldset className={styles.studentPicker}><legend>MEETING PARTICIPANTS</legend><span>Choose one student for a one-on-one meeting, or several for a group meeting. Every selected student keeps their own notes and next guide.</span><div className={styles.participantTable}>{data.students.filter((student) => student.active).map((student) => { const individual = draft.individual[student.id]; const nextGuide = individual?.meeting_number || meetingNumberForStudent(student.id, data.meetings); return <label key={student.id} className={draft.studentIds.includes(student.id) ? styles.participantSelected : undefined}><input type="checkbox" checked={draft.studentIds.includes(student.id)} onChange={() => toggleStudent(student.id)} /><span><strong>{student.full_name}</strong><small>{student.grade} · {student.school}</small></span><em>Guide {nextGuide}</em></label>; })}</div></fieldset><label className={styles.fullField}>Shared meeting notes<textarea value={draft.shared_notes} onChange={(event) => setDraft({ ...draft, shared_notes: event.target.value })} placeholder="What did you talk about, decide, or plan together?" /></label><div className={styles.individualRecords}><div className={styles.sectionTitle}><div><p>INDIVIDUAL FOLLOW-UP</p><h2>Each student’s record</h2></div></div>{selectedStudents.map((student) => { const individual = draft.individual[student.id] || blankIndividual(meetingNumberForStudent(student.id, data.meetings)); return <details key={student.id} open><summary><strong>{student.full_name}</strong><span>{student.grade} · {student.school} · Curriculum guide {individual.meeting_number}</span></summary><div className={styles.individualFields}><label>Attendance<select value={individual.attendance} onChange={(event) => updateIndividual(student.id, "attendance", event.target.value)}><option value="present">Present</option><option value="absent">Absent</option><option value="rescheduled">Rescheduled</option></select></label><label>Progress<select value={individual.progress} onChange={(event) => updateIndividual(student.id, "progress", event.target.value)}><option value="on_track">On track</option><option value="needs_support">Needs support</option><option value="complete">Goal complete</option></select></label><label>Private note<textarea value={individual.personal_notes} onChange={(event) => updateIndividual(student.id, "personal_notes", event.target.value)} placeholder="Notes only this student should carry forward." /></label><label>Next goal<input value={individual.goal} onChange={(event) => updateIndividual(student.id, "goal", event.target.value)} placeholder="A clear, student-created next step" /></label></div></details>; })}{!selectedStudents.length && <p className={styles.empty}>Choose a meeting participant above to begin.</p>}</div><div className={styles.saveRow}><label>Status<select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as MeetingDraft["status"] })}><option value="complete">Complete</option><option value="scheduled">Scheduled</option><option value="cancelled">Cancelled</option></select></label><button type="button" className={styles.secondaryButton} onClick={onClose}>Cancel</button><button className={styles.primaryButton} disabled={saving}>{saving ? "Saving…" : "Save meeting"}</button></div></section><aside className={styles.curriculumRail}><p>CURRICULUM AT A GLANCE</p><h2>Guide the conversation.</h2><span>The meeting stays flexible; these are the next guides for the students you selected.</span>{selectedStudents.map((student) => { const guideNumber = draft.individual[student.id]?.meeting_number || meetingNumberForStudent(student.id, data.meetings); const guides = curriculumForStudent(student, guideNumber, curriculum); return <section className={styles.curriculumStudent} key={student.id}><header><strong>{student.full_name}</strong><span>Meeting {guideNumber}</span></header>{guides.map((item) => <details key={`${student.id}-${item.id}`}><summary><strong>{item.track}</strong><span>{item.title}</span></summary><div><p><b>Start</b>{item.start_prompt}</p><p><b>Discussion questions</b>{item.discussion_questions.map((question) => `• ${question}`).join("\n")}</p><p><b>Activity</b>{item.activity}</p><p><b>Action item</b>{item.action_item}</p>{item.resources.length > 0 && <p><b>Resources</b>{item.resources.join(" · ")}</p>}</div></details>)}{!guides.length && <p className={styles.empty}>No published guide is set for this meeting number yet.</p>}</section>; })}{!selectedStudents.length && <p className={styles.empty}>Choose a student to see their next curriculum guides.</p>}</aside></form></>;
+}
+
+function StudentProfileView({ students, assignments, meetings, grades, goals, canManage, isAdmin, selected, setSelected, onNew, onSaveGrade, saving }: { students: Student[]; assignments: Assignment[]; meetings: Meeting[]; grades: Grade[]; goals: Goal[]; canManage: boolean; isAdmin: boolean; selected: Student | null; setSelected: (id: string | null) => void; onNew: () => void; onSaveGrade: (event: FormEvent) => void; saving: boolean }) {
+  const studentGrades = selected ? grades.filter((grade) => grade.student_id === selected.id) : [];
+  const studentGoals = selected ? goals.filter((goal) => goal.student_id === selected.id) : [];
+  const studentMeetings = selected ? meetings.filter((meeting) => meeting.meeting_students?.some((record) => record.student_id === selected.id)).sort((left, right) => right.meeting_at.localeCompare(left.meeting_at)) : [];
+  const completedMeetings = studentMeetings.filter((meeting) => meeting.status === "complete");
+  const gpa = studentGrades.length ? (studentGrades.reduce((total, grade) => total + gradePoint(grade.letter_grade), 0) / studentGrades.length).toFixed(2) : "—";
+  const latestBySubject = Object.values(studentGrades.reduce<Record<string, Grade[]>>((groups, grade) => { (groups[grade.subject] ||= []).push(grade); return groups; }, {})).map((history) => history.sort((left, right) => right.reported_on.localeCompare(left.reported_on)));
+  return <><section className={styles.heading}><div><p>{selected ? "STUDENT PROFILE" : "STUDENTS"}</p><h1>{selected ? selected.full_name : "Students."}</h1><span>{selected ? `${selected.grade} · ${selected.school}` : "Open a participant to review their meetings, academic progress, goals, and next curriculum guide."}</span></div>{isAdmin && <button className={styles.primaryButton} onClick={onNew}>Add student <b>+</b></button>}</section>{selected ? <section className={styles.studentProfile}><button className={styles.textButton} onClick={() => setSelected(null)}>← All students</button><div className={styles.studentStats}><div><span>GPA</span><strong>{gpa}</strong></div><div><span>COMPLETED MEETINGS</span><strong>{completedMeetings.length}</strong></div><div><span>NEXT CURRICULUM GUIDE</span><strong>Meeting {meetingNumberForStudent(selected.id, meetings)}</strong></div></div><div className={styles.profileGrid}><section><h2>Academic progress</h2>{latestBySubject.length ? <div className={styles.gradeRows}>{latestBySubject.map((history) => { const current = history[0]; const previous = history[1]; const change = current.percentage !== null && previous?.percentage !== null ? current.percentage - previous.percentage : null; return <div key={current.subject}><strong>{current.subject}</strong><span>{current.letter_grade}{current.percentage !== null ? ` · ${current.percentage}%` : ""}</span><small>{previous && change !== null ? `${change > 0 ? "+" : ""}${change} points since ${displayDate(previous.reported_on)}` : `Reported ${displayDate(current.reported_on)}`} · {current.missing_assignments} missing</small></div>; })}</div> : <p className={styles.empty}>No grades have been added yet.</p>}{canManage && <form className={styles.inlineForm} onSubmit={onSaveGrade}><input required name="subject" placeholder="Subject" /><input required name="letter_grade" placeholder="Grade" /><input name="percentage" type="number" min="0" max="100" placeholder="%" /><input name="missing_assignments" type="number" min="0" placeholder="Missing" /><button disabled={saving}>Add grade</button></form>}</section><section><h2>Goals & follow-up</h2>{studentGoals.length ? <div className={styles.gradeRows}>{studentGoals.map((goal) => <div key={goal.id}><strong>{goal.title}</strong><span>{goal.status.replaceAll("_", " ")}</span><small>{goal.detail || "No details added."}</small></div>)}</div> : <p className={styles.empty}>No goals have been added yet.</p>}<h2 className={styles.profileSubheading}>Meeting history</h2>{studentMeetings.length ? <div className={styles.gradeRows}>{studentMeetings.map((meeting) => { const record = meeting.meeting_students?.find((entry) => entry.student_id === selected.id); return <div key={meeting.id}><strong>Meeting {record?.meeting_number || "—"} · {displayDate(meeting.meeting_at)}</strong><span>{record?.attendance || meeting.status}</span><small>{record?.goal || meeting.shared_notes || "No notes recorded."}</small></div>; })}</div> : <p className={styles.empty}>No meetings have been recorded yet.</p>}</section></div></section> : <section className={styles.studentList}>{students.filter((student) => student.active).map((student) => { const studentMeetings = meetings.filter((meeting) => meeting.meeting_students?.some((entry) => entry.student_id === student.id && meeting.status === "complete")); return <button key={student.id} type="button" onClick={() => setSelected(student.id)}><span className={styles.studentInitials}>{student.full_name.split(" ").map((part) => part[0]).slice(0, 2).join("")}</span><span><strong>{student.full_name}</strong><small>{student.grade} · {student.school} · {studentMeetings.length} meetings completed</small></span><b>→</b></button>; })}{!students.length && <p className={styles.empty}>No students are assigned to this account yet.</p>}</section>}</>;
 }
 
 function StudentsView({ students, assignments, grades, goals, canManage, isAdmin, selected, setSelected, onNew, onSaveGrade, saving }: { students: Student[]; assignments: Assignment[]; grades: Grade[]; goals: Goal[]; canManage: boolean; isAdmin: boolean; selected: Student | null; setSelected: (id: string | null) => void; onNew: () => void; onSaveGrade: (event: FormEvent) => void; saving: boolean }) {
@@ -552,6 +520,19 @@ function StudentsView({ students, assignments, grades, goals, canManage, isAdmin
 function CurriculumView({ items, role }: { items: CurriculumItem[]; role: PortalRole }) {
   const grouped = items.reduce<Record<string, CurriculumItem[]>>((groups, item) => { (groups[item.track] ||= []).push(item); return groups; }, {});
   return <><section className={styles.heading}><div><p>CURRICULUM</p><h1>Ready when the conversation needs it.</h1><span>Open the parts that fit. Mentors are not locked to a single track in a meeting.</span></div>{role === "admin" && <span className={styles.quietNote}>Curriculum edits are managed in the private setup area.</span>}</section><div className={styles.curriculumGrid}>{Object.entries(grouped).map(([track, trackItems]) => <section key={track}><p>{track}</p>{trackItems.map((item) => <details key={item.id}><summary><strong>{String(item.meeting_number).padStart(2, "0")}</strong><span>{item.title}</span></summary><div><h2>Start</h2><p>{item.start_prompt}</p><h2>Discussion questions</h2><ul>{item.discussion_questions.map((question) => <li key={question}>{question}</li>)}</ul><h2>Activity</h2><p>{item.activity}</p><h2>Resources</h2><p>{item.resources.join(" · ") || "None added"}</p><h2>Action item</h2><p>{item.action_item}</p></div></details>)}</section>)}</div></>;
+}
+
+function ReportingView({ data }: { data: WorkspaceData }) {
+  const completed = data.meetings.filter((meeting) => meeting.status === "complete");
+  const hours = completed.reduce((total, meeting) => total + meeting.duration_minutes, 0) / 60;
+  const mentors = data.team.filter((person) => person.role === "admin" || person.role === "mentor");
+  const meetingStudents = completed.flatMap((meeting) => meeting.meeting_students || []);
+  function studentName(studentId: string) { return data.students.find((student) => student.id === studentId)?.full_name || "Student"; }
+  function mentorName(mentorId: string) { return data.team.find((person) => person.user_id === mentorId)?.display_name || "Not assigned"; }
+  function exportStudents() { downloadCsv("fom-mentorship-student-progress.csv", ["Student", "School", "Grade", "Mentor", "Completed meetings", "Next curriculum guide"], data.students.map((student) => [student.full_name, student.school, student.grade, mentorName(data.assignments.find((assignment) => assignment.student_id === student.id)?.mentor_id || ""), completed.filter((meeting) => meeting.meeting_students?.some((record) => record.student_id === student.id)).length, meetingNumberForStudent(student.id, data.meetings)])); }
+  function exportMeetings() { downloadCsv("fom-mentorship-meeting-records.csv", ["Date", "Mentee", "Mentor", "Guide", "Minutes", "Attendance", "Status", "Notes"], completed.flatMap((meeting) => (meeting.meeting_students || []).map((record) => [meeting.meeting_at, studentName(record.student_id), mentorName(meeting.mentor_id), record.meeting_number, meeting.duration_minutes, record.attendance, meeting.status, record.personal_notes || meeting.shared_notes]))); }
+  function exportGrades() { downloadCsv("fom-mentorship-grade-history.csv", ["Student", "Reported", "Course", "Grade", "Percent", "Missing assignments"], data.grades.map((grade) => [studentName(grade.student_id), grade.reported_on, grade.subject, grade.letter_grade, grade.percentage, grade.missing_assignments])); }
+  return <><section className={styles.heading}><div><p>ADMIN REPORTING</p><h1>Program records, at a glance.</h1><span>Review current enrollment, participation, academic progress, and every meeting from this cycle. Export the records whenever you need them.</span></div></section><section className={styles.metrics}><div><span>MENTEES</span><strong>{data.students.filter((student) => student.active).length}</strong></div><div><span>MENTORS</span><strong>{mentors.length}</strong></div><div><span>MEETINGS</span><strong>{completed.length}</strong></div><div><span>HOURS</span><strong>{hours.toFixed(1)}</strong></div></section><section className={styles.reportActions}><article><p>MENTEE PROGRESS</p><h2>Profiles & academic record</h2><span>Schools, grades, mentor assignment, meeting completion, and the next guide.</span><button className={styles.secondaryButton} onClick={exportStudents}>Export student progress</button></article><article><p>MEETING DETAILS</p><h2>Attendance & follow-up</h2><span>Every participant, individual guide number, attendance, meeting time, and notes.</span><button className={styles.secondaryButton} onClick={exportMeetings}>Export meeting records</button></article><article><p>GRADE HISTORY</p><h2>Academic snapshots</h2><span>Course grades and missing-assignment counts, kept in chronological order.</span><button className={styles.secondaryButton} onClick={exportGrades}>Export grade history</button></article><article><p>CURRICULUM</p><h2>{data.curriculum.length} published guides</h2><span>All tracks are available in the meeting workspace and follow each student’s own meeting number.</span><button className={styles.secondaryButton} onClick={() => downloadCsv("fom-mentorship-curriculum.csv", ["Track", "Meeting", "Title", "Start", "Activity", "Action item"], data.curriculum.map((item) => [item.track, item.meeting_number, item.title, item.start_prompt, item.activity, item.action_item]))}>Export curriculum</button></article></section><section className={styles.reportPanel}><div className={styles.sectionTitle}><div><p>MENTEE PROGRESS</p><h2>Current cycle</h2></div><span className={styles.quietNote}>Meeting numbers advance individually, so one group meeting can still keep every student on track.</span></div><div className={styles.reportTable}><div className={styles.reportTableHead}><span>MENTEE</span><span>MENTOR</span><span>MEETINGS</span><span>HOURS</span><span>NEXT GUIDE</span></div>{data.students.filter((student) => student.active).map((student) => { const studentMeetings = completed.filter((meeting) => meeting.meeting_students?.some((record) => record.student_id === student.id)); const totalMinutes = studentMeetings.reduce((total, meeting) => total + meeting.duration_minutes, 0); return <div className={styles.reportTableRow} key={student.id}><strong>{student.full_name}<small>{student.grade} · {student.school}</small></strong><span>{mentorName(data.assignments.find((assignment) => assignment.student_id === student.id)?.mentor_id || "")}</span><span>{studentMeetings.length}</span><span>{(totalMinutes / 60).toFixed(1)}</span><span>Meeting {meetingNumberForStudent(student.id, data.meetings)}</span></div>; })}</div></section><section className={styles.reportPanel}><div className={styles.sectionTitle}><div><p>MENTOR ACTIVITY</p><h2>Current cycle activity</h2></div></div><div className={styles.reportTable}><div className={styles.reportTableHead}><span>MENTOR</span><span>MENTEES</span><span>COMPLETED</span><span>HOURS</span><span>LAST MEETING</span></div>{mentors.map((mentor) => { const mentorMeetings = completed.filter((meeting) => meeting.mentor_id === mentor.user_id); const assigned = new Set(data.assignments.filter((assignment) => assignment.mentor_id === mentor.user_id).map((assignment) => assignment.student_id)); const last = mentorMeetings.sort((left, right) => right.meeting_at.localeCompare(left.meeting_at))[0]; return <div className={styles.reportTableRow} key={mentor.user_id}><strong>{mentor.display_name}<small>{mentor.role === "admin" ? "Executive Director" : "Mentor"}</small></strong><span>{assigned.size}</span><span>{mentorMeetings.length}</span><span>{(mentorMeetings.reduce((total, meeting) => total + meeting.duration_minutes, 0) / 60).toFixed(1)}</span><span>{last ? displayDate(last.meeting_at) : "Not set"}</span></div>; })}</div></section><section className={styles.reportPanel}><div className={styles.sectionTitle}><div><p>MEETING MANAGEMENT</p><h2>Meeting records</h2></div><span className={styles.quietNote}>{completed.length} completed records</span></div><div className={styles.reportTable}><div className={styles.reportTableHead}><span>DATE</span><span>MENTEE</span><span>MENTOR</span><span>DURATION</span><span>NOTES</span></div>{completed.map((meeting) => <div className={styles.reportTableRow} key={meeting.id}><strong>{displayDate(meeting.meeting_at)}<small>{meeting.meeting_students?.map((record) => `Meeting ${record.meeting_number}`).join(" · ")}</small></strong><span>{meeting.meeting_students?.map((record) => studentName(record.student_id)).join(", ") || "—"}</span><span>{mentorName(meeting.mentor_id)}</span><span>{meeting.duration_minutes ? `${meeting.duration_minutes}m` : "—"}</span><span className={styles.noteCell}>{meeting.shared_notes || meeting.meeting_students?.map((record) => record.personal_notes).filter(Boolean).join(" ") || "No notes"}</span></div>)}</div></section></>;
 }
 
 function ReportsView({ data }: { data: WorkspaceData }) {

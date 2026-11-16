@@ -41,6 +41,7 @@ export type Assignment = {
 export type MeetingStudent = {
   id?: string;
   student_id: string;
+  meeting_number?: number;
   attendance: "present" | "absent" | "rescheduled";
   personal_notes: string;
   goal: string;
@@ -113,6 +114,7 @@ export type MentorshipApplication = {
 
 export type WorkspaceData = {
   profile: Profile;
+  team: Profile[];
   students: Student[];
   cohorts: Cohort[];
   assignments: Assignment[];
@@ -140,4 +142,38 @@ export function toDateTimeLocal(value: string) {
 export function gradePoint(letter: string) {
   const first = letter.trim().toUpperCase().slice(0, 1);
   return first === "A" ? 4 : first === "B" ? 3 : first === "C" ? 2 : first === "D" ? 1 : 0;
+}
+
+export function meetingNumberForStudent(studentId: string, meetings: Meeting[]) {
+  const completedEntries = meetings
+    .filter((meeting) => meeting.status === "complete")
+    .sort((left, right) => left.meeting_at.localeCompare(right.meeting_at))
+    .flatMap((meeting) => (meeting.meeting_students || []).filter((entry) => entry.student_id === studentId));
+  const recordedNumbers = completedEntries.map((entry) => entry.meeting_number || 0).filter(Boolean);
+  return recordedNumbers.length ? Math.max(...recordedNumbers) + 1 : completedEntries.length + 1;
+}
+
+export function meetingNumberForRecord(studentId: string, meetingId: string, meetings: Meeting[]) {
+  const matchingMeeting = meetings.find((meeting) => meeting.id === meetingId);
+  const storedNumber = matchingMeeting?.meeting_students?.find((entry) => entry.student_id === studentId)?.meeting_number;
+  if (storedNumber) return storedNumber;
+  const completedIds = meetings
+    .filter((meeting) => meeting.status === "complete" && meeting.meeting_students?.some((entry) => entry.student_id === studentId))
+    .sort((left, right) => left.meeting_at.localeCompare(right.meeting_at))
+    .map((meeting) => meeting.id);
+  const position = completedIds.indexOf(meetingId);
+  return position >= 0 ? position + 1 : meetingNumberForStudent(studentId, meetings);
+}
+
+export function gradeBandForStudent(student: Student) {
+  const grade = Number.parseInt(student.grade, 10);
+  if (!Number.isFinite(grade) || grade <= 7) return "5th–7th";
+  if (grade <= 9) return "8th–9th";
+  if (grade <= 11) return "10th–11th";
+  return "12th";
+}
+
+export function curriculumForStudent(student: Student, meetingNumber: number, curriculum: CurriculumItem[]) {
+  const gradeBand = gradeBandForStudent(student);
+  return curriculum.filter((item) => item.meeting_number === meetingNumber && (!item.track.startsWith("College & Career Readiness") || item.track.includes(gradeBand)));
 }
