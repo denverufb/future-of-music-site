@@ -441,7 +441,7 @@ export default function MentorshipPortal() {
     { id: "curriculum", label: "Curriculum", visible: true },
     { id: "reports", label: "Reports", visible: isAdministrationPortal },
     { id: "applications", label: "Applications", visible: isAdministrationPortal },
-    { id: "setup", label: "Program setup", visible: isAdministrationPortal },
+    { id: "setup", label: "People & matching", visible: isAdministrationPortal },
   ];
 
   return <div className={styles.portal}>
@@ -602,6 +602,15 @@ function ApplicationsView({ data, onRefresh, setError, setNotice }: { data: Work
     setBusy(false);
   }
 
+  async function removeApplication() {
+    if (!selected) return;
+    if (!window.confirm(`Remove ${selected.full_name}'s application from this inbox? This permanently deletes the submitted application. Their participant record and portal access, if you created either, will stay in place.`)) return;
+    setBusy(true); setError("");
+    const { error: issue } = await getMentorshipClient().from("mentorship_applications").delete().eq("id", selected.id);
+    if (issue) setError(errorText(issue)); else { setSelectedId(null); setNotice("Application removed from the inbox."); await onRefresh(); }
+    setBusy(false);
+  }
+
   async function createStudent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selected) return;
@@ -643,7 +652,7 @@ function ApplicationsView({ data, onRefresh, setError, setNotice }: { data: Work
     setBusy(false);
   }
 
-  return <><section className={styles.heading}><div><p>APPLICATIONS</p><h1>New mentorship interest.</h1><span>Review submitted applications, build a participant record, and send secure portal invitations when someone is ready.</span></div></section><section className={styles.applicationLayout}><div className={styles.applicationList}>{data.applications.map((application) => <button key={application.id} type="button" onClick={() => setSelectedId(application.id)} aria-current={selected?.id === application.id ? "true" : undefined}><span><strong>{application.full_name}</strong><small>{application.school} · {displayDate(application.submitted_at)}</small></span><em>{application.status}</em></button>)}{!data.applications.length && <p className={styles.empty}>No applications have been submitted yet.</p>}</div>{selected && <div className={styles.applicationDetail}><div className={styles.applicationDetailHeader}><div><p>APPLICATION</p><h2>{selected.full_name}</h2><span>{selected.school} · received {displayDate(selected.submitted_at)}</span></div><label>Status<select value={selected.status} disabled={busy} onChange={(event) => void updateStatus(event.target.value as ApplicationStatus)}><option value="submitted">Submitted</option><option value="reviewing">Reviewing</option><option value="accepted">Accepted</option><option value="declined">Declined</option><option value="invited">Invited</option></select></label></div><div className={styles.applicationContact}><div><span>Student phone</span><strong>{selected.student_phone}</strong></div><div><span>Student email</span><strong>{selected.student_email}</strong></div><div><span>Guardian</span><strong>{selected.guardian_name}</strong></div><div><span>Guardian phone</span><strong>{selected.guardian_phone}</strong></div></div><section className={styles.applicationReason}><p>WHY THEY WANT TO PARTICIPATE</p><p>{selected.why_participate}</p></section><div className={styles.applicationActions}><section><p>PARTICIPANT RECORD</p><h3>Add to the cohort roster</h3><span>Create their participant record first. Grade is kept here because it is helpful for matching and progress tracking.</span><form className={styles.inviteForm} onSubmit={createStudent}><label>Current grade<input required name="grade" placeholder="Example: 8th grade" /></label><button className={styles.secondaryButton} disabled={busy}>Add participant</button></form></section><section><p>PORTAL INVITATION</p><h3>Send secure access</h3><span>Supabase emails an invitation so the person can create their own password. Mentees must be linked to an existing participant record.</span><form className={styles.inviteForm} key={`${selected.id}-${inviteRole}`} onSubmit={invite}><label>Name<input required name="name" defaultValue={selected.full_name} /></label><label>Email<input required name="email" type="email" defaultValue={selected.student_email} /></label><label>Access type<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as Exclude<PortalRole, "admin">)}><option value="mentee">Mentee</option><option value="mentor">Mentor</option><option value="supervisor">Supervisor</option></select></label>{inviteRole === "mentee" && <label>Participant record<select required name="student_id" defaultValue=""><option value="" disabled>Select the student record</option>{data.students.filter((student) => !student.account_id).map((student) => <option key={student.id} value={student.id}>{student.full_name} · {student.grade || "grade not set"}</option>)}</select></label>}<button className={styles.primaryButton} disabled={busy}>{busy ? "Sending…" : "Email invitation"}</button></form></section></div></div>}</section></>;
+  return <><section className={styles.heading}><div><p>APPLICATIONS</p><h1>New mentorship interest.</h1><span>Review submitted applications, build a participant record, and send secure portal invitations when someone is ready.</span></div></section><section className={styles.applicationLayout}><div className={styles.applicationList}>{data.applications.map((application) => <button key={application.id} type="button" onClick={() => setSelectedId(application.id)} aria-current={selected?.id === application.id ? "true" : undefined}><span><strong>{application.full_name}</strong><small>{application.school} · {displayDate(application.submitted_at)}</small></span><em>{application.status}</em></button>)}{!data.applications.length && <p className={styles.empty}>No applications have been submitted yet.</p>}</div>{selected && <div className={styles.applicationDetail}><div className={styles.applicationDetailHeader}><div><p>APPLICATION</p><h2>{selected.full_name}</h2><span>{selected.school} · received {displayDate(selected.submitted_at)}</span></div><div className={styles.applicationDetailControls}><label>Status<select value={selected.status} disabled={busy} onChange={(event) => void updateStatus(event.target.value as ApplicationStatus)}><option value="submitted">Submitted</option><option value="reviewing">Reviewing</option><option value="accepted">Accepted</option><option value="declined">Declined</option><option value="invited">Invited</option></select></label><button type="button" className={styles.removeApplicationButton} disabled={busy} onClick={() => void removeApplication()}>Remove from inbox</button></div></div><div className={styles.applicationContact}><div><span>Student phone</span><strong>{selected.student_phone}</strong></div><div><span>Student email</span><strong>{selected.student_email}</strong></div><div><span>Guardian</span><strong>{selected.guardian_name}</strong></div><div><span>Guardian phone</span><strong>{selected.guardian_phone}</strong></div></div><section className={styles.applicationReason}><p>WHY THEY WANT TO PARTICIPATE</p><p>{selected.why_participate}</p></section><div className={styles.applicationActions}><section><p>PARTICIPANT RECORD</p><h3>Add to participant records</h3><span>Create their participant record first. Grade is kept here because it is helpful for matching and progress tracking.</span><form className={styles.inviteForm} onSubmit={createStudent}><label>Current grade<input required name="grade" placeholder="Example: 8th grade" /></label><button className={styles.secondaryButton} disabled={busy}>Add participant</button></form></section><section><p>PORTAL INVITATION</p><h3>Send secure access</h3><span>Supabase emails an invitation so the person can create their own password. Mentees must be linked to an existing participant record.</span><form className={styles.inviteForm} key={`${selected.id}-${inviteRole}`} onSubmit={invite}><label>Name<input required name="name" defaultValue={selected.full_name} /></label><label>Email<input required name="email" type="email" defaultValue={selected.student_email} /></label><label>Access type<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as Exclude<PortalRole, "admin">)}><option value="mentee">Mentee</option><option value="mentor">Mentor</option><option value="supervisor">Supervisor</option></select></label>{inviteRole === "mentee" && <label>Participant record<select required name="student_id" defaultValue=""><option value="" disabled>Select the student record</option>{data.students.filter((student) => !student.account_id).map((student) => <option key={student.id} value={student.id}>{student.full_name} · {student.grade || "grade not set"}</option>)}</select></label>}<button className={styles.primaryButton} disabled={busy}>{busy ? "Sending…" : "Email invitation"}</button></form></section></div></div>}</section></>;
 }
 
 function SetupView({ data, onRefresh, setError, setNotice }: { data: WorkspaceData; onRefresh: () => Promise<void>; setError: (message: string) => void; setNotice: (message: string) => void }) {
@@ -652,45 +661,8 @@ function SetupView({ data, onRefresh, setError, setNotice }: { data: WorkspaceDa
   const mentors = data.team.filter((person) => person.role === "admin" || person.role === "mentor");
   const activeStudents = data.students.filter((student) => student.active);
   const pendingAccessStudents = activeStudents.filter((student) => !student.account_id);
-  const activeCohort = data.cohorts.find((cohort) => cohort.active) || data.cohorts[0] || null;
-  const assignmentFor = (studentId: string, cohortId: string | null) => data.assignments.find((assignment) => assignment.student_id === studentId && assignment.cohort_id === cohortId) || null;
+  const assignmentFor = (studentId: string) => data.assignments.find((assignment) => assignment.student_id === studentId) || null;
   const mentorName = (mentorId: string | null | undefined) => data.team.find((person) => person.user_id === mentorId)?.display_name || "Not paired";
-
-  async function createCohort(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    setBusy(true); setError("");
-    try {
-      const { error: issue } = await getMentorshipClient().from("mentorship_cohorts").insert({
-        title: String(form.get("title") || "").trim(),
-        starts_on: String(form.get("starts_on") || ""),
-        ends_on: String(form.get("ends_on") || ""),
-        active: true,
-      });
-      if (issue) throw issue;
-      event.currentTarget.reset();
-      setNotice("Cohort created and ready for matching.");
-      await onRefresh();
-    } catch (issue) {
-      setError(errorText(issue));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function toggleCohort(cohort: Cohort) {
-    setBusy(true); setError("");
-    try {
-      const { error: issue } = await getMentorshipClient().from("mentorship_cohorts").update({ active: !cohort.active }).eq("id", cohort.id);
-      if (issue) throw issue;
-      setNotice(`${cohort.title} is now ${cohort.active ? "closed" : "active"}.`);
-      await onRefresh();
-    } catch (issue) {
-      setError(errorText(issue));
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function addParticipant(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -752,17 +724,16 @@ function SetupView({ data, onRefresh, setError, setNotice }: { data: WorkspaceDa
     const form = new FormData(event.currentTarget);
     const mentorId = String(form.get("mentor_id") || "");
     const studentId = String(form.get("student_id") || "");
-    const cohortId = String(form.get("cohort_id") || "");
-    if (!mentorId || !studentId || !cohortId) {
-      setError("Choose a mentor, mentee, and cohort before saving the pairing.");
+    if (!mentorId || !studentId) {
+      setError("Choose a mentor and mentee before saving the pairing.");
       return;
     }
     setBusy(true); setError("");
     try {
-      const current = assignmentFor(studentId, cohortId);
+      const current = assignmentFor(studentId);
       const query = current
         ? getMentorshipClient().from("mentorship_assignments").update({ mentor_id: mentorId }).eq("id", current.id)
-        : getMentorshipClient().from("mentorship_assignments").insert({ mentor_id: mentorId, student_id: studentId, cohort_id: cohortId });
+        : getMentorshipClient().from("mentorship_assignments").insert({ mentor_id: mentorId, student_id: studentId, cohort_id: null });
       const { error: issue } = await query;
       if (issue) throw issue;
       const student = data.students.find((item) => item.id === studentId);
@@ -793,25 +764,15 @@ function SetupView({ data, onRefresh, setError, setNotice }: { data: WorkspaceDa
   }
 
   return <>
-    <section className={styles.heading}><div><p>PROGRAM SETUP</p><h1>Run the next mentorship cycle.</h1><span>Create a cohort, add participants, send secure access, and pair each mentee with the right mentor—all in one place.</span></div></section>
+    <section className={styles.heading}><div><p>PEOPLE & MATCHING</p><h1>Set up your mentorship team.</h1><span>Add participants, invite mentors or mentees, and keep every mentorship match current in one place.</span></div></section>
     <section className={styles.setupOverview}>
-      <div><span>ACTIVE COHORT</span><strong>{activeCohort?.title || "Not created"}</strong><small>{activeCohort ? `${displayDate(activeCohort.starts_on)} — ${displayDate(activeCohort.ends_on)}` : "Start by creating the upcoming three-month cycle."}</small></div>
       <div><span>MENTORS READY</span><strong>{mentors.length}</strong><small>{mentors.length ? mentors.map((mentor) => mentor.display_name).join(" · ") : "Invite the first mentor below."}</small></div>
-      <div><span>MENTEES TO PAIR</span><strong>{activeCohort ? activeStudents.filter((student) => !assignmentFor(student.id, activeCohort.id)).length : activeStudents.length}</strong><small>{activeCohort ? "Active roster members without a mentor match." : "Create a cohort to make matches."}</small></div>
+      <div><span>ACTIVE MENTEES</span><strong>{activeStudents.length}</strong><small>Participants currently available for meetings and progress tracking.</small></div>
+      <div><span>MENTEES TO PAIR</span><strong>{activeStudents.filter((student) => !assignmentFor(student.id)).length}</strong><small>Active roster members without a mentor match.</small></div>
     </section>
     <section className={styles.setupGrid}>
       <section className={styles.setupPanel}>
-        <div className={styles.sectionTitle}><div><p>01 · COHORT</p><h2>Cycle dates</h2></div></div>
-        <form className={styles.setupForm} onSubmit={createCohort}>
-          <label>Cycle name<input required name="title" placeholder="Example: Winter 2027" /></label>
-          <label>Start date<input required name="starts_on" type="date" /></label>
-          <label>End date<input required name="ends_on" type="date" /></label>
-          <button className={styles.primaryButton} disabled={busy}>Create cohort</button>
-        </form>
-        <div className={styles.cohortList}>{data.cohorts.map((cohort) => <div className={styles.setupRow} key={cohort.id}><span><strong>{cohort.title}</strong><small>{displayDate(cohort.starts_on)} — {displayDate(cohort.ends_on)}</small></span><em>{cohort.active ? "Active" : "Closed"}</em><button type="button" className={styles.textButton} disabled={busy} onClick={() => void toggleCohort(cohort)}>{cohort.active ? "Close" : "Reopen"}</button></div>)}{!data.cohorts.length && <p className={styles.empty}>No cohorts have been created yet.</p>}</div>
-      </section>
-      <section className={styles.setupPanel}>
-        <div className={styles.sectionTitle}><div><p>02 · PARTICIPANTS</p><h2>Build the roster</h2></div></div>
+        <div className={styles.sectionTitle}><div><p>01 · PARTICIPANTS</p><h2>Build the roster</h2></div></div>
         <form className={styles.setupForm} onSubmit={addParticipant}>
           <label>Student name<input required name="full_name" autoComplete="name" /></label>
           <label>School<input required name="school" /></label>
@@ -821,7 +782,7 @@ function SetupView({ data, onRefresh, setError, setNotice }: { data: WorkspaceDa
         </form>
       </section>
       <section className={styles.setupPanel}>
-        <div className={styles.sectionTitle}><div><p>03 · ACCESS</p><h2>Invite mentors or mentees</h2></div></div>
+        <div className={styles.sectionTitle}><div><p>02 · ACCESS</p><h2>Invite mentors or mentees</h2></div></div>
         <p className={styles.setupHelp}>Each person receives their own secure email invitation to create a password. A mentee must be attached to a roster record first.</p>
         <form className={styles.setupForm} key={inviteRole} onSubmit={sendInvitation}>
           <label>Access type<select value={inviteRole} onChange={(event) => setInviteRole(event.target.value as "mentor" | "mentee")}><option value="mentor">Mentor</option><option value="mentee">Mentee</option></select></label>
@@ -833,13 +794,12 @@ function SetupView({ data, onRefresh, setError, setNotice }: { data: WorkspaceDa
         </form>
       </section>
       <section className={styles.setupPanel}>
-        <div className={styles.sectionTitle}><div><p>04 · MATCHING</p><h2>Pair mentees</h2></div></div>
-        <p className={styles.setupHelp}>Choose the cycle, mentee, and mentor. Saving again changes an existing pairing instead of creating a duplicate.</p>
+        <div className={styles.sectionTitle}><div><p>03 · MATCHING</p><h2>Pair mentees</h2></div></div>
+        <p className={styles.setupHelp}>Choose a mentee and mentor. Saving again updates an existing match instead of creating a duplicate.</p>
         <form className={styles.setupForm} onSubmit={savePairing}>
-          <label>Cohort<select required name="cohort_id" defaultValue={activeCohort?.id || ""}><option value="" disabled>Select a cohort</option>{data.cohorts.map((cohort) => <option key={cohort.id} value={cohort.id}>{cohort.title}{cohort.active ? " · active" : ""}</option>)}</select></label>
-          <label>Mentee<select required name="student_id" defaultValue=""><option value="" disabled>Select a participant</option>{activeStudents.map((student) => <option key={student.id} value={student.id}>{student.full_name} · {mentorName(assignmentFor(student.id, activeCohort?.id || null)?.mentor_id)}</option>)}</select></label>
+          <label>Mentee<select required name="student_id" defaultValue=""><option value="" disabled>Select a participant</option>{activeStudents.map((student) => <option key={student.id} value={student.id}>{student.full_name} · {mentorName(assignmentFor(student.id)?.mentor_id)}</option>)}</select></label>
           <label>Mentor<select required name="mentor_id" defaultValue=""><option value="" disabled>Select a mentor</option>{mentors.map((mentor) => <option key={mentor.user_id} value={mentor.user_id}>{mentor.display_name}{mentor.role === "admin" ? " · admin" : ""}</option>)}</select></label>
-          <button className={styles.secondaryButton} disabled={busy || !data.cohorts.length || !mentors.length || !activeStudents.length}>Save pairing</button>
+          <button className={styles.secondaryButton} disabled={busy || !mentors.length || !activeStudents.length}>Save pairing</button>
         </form>
       </section>
     </section>
@@ -847,7 +807,7 @@ function SetupView({ data, onRefresh, setError, setNotice }: { data: WorkspaceDa
       <div className={styles.sectionTitle}><div><p>MENTOR ACCESS</p><h2>Current mentor accounts</h2></div><span className={styles.quietNote}>Removing access keeps past meeting records intact.</span></div>
       <div className={styles.cohortList}>{mentors.filter((mentor) => mentor.role === "mentor").map((mentor) => <div className={styles.setupRow} key={mentor.user_id}><span><strong>{mentor.display_name}</strong><small>{mentor.email}</small></span><em>Active</em><button type="button" className={styles.textButton} disabled={busy} onClick={() => void removeMentorAccess(mentor)}>Remove access</button></div>)}{!mentors.some((mentor) => mentor.role === "mentor") && <p className={styles.empty}>No mentor accounts are active right now.</p>}</div>
     </section>
-    <section className={styles.listSection}><div className={styles.sectionTitle}><div><p>CURRENT ROSTER</p><h2>Who is ready for the next step</h2></div><span className={styles.quietNote}>{activeStudents.length} active participants</span></div><div className={styles.setupRoster}><div className={styles.setupRosterHead}><span>MENTEE</span><span>PORTAL ACCESS</span><span>MENTOR MATCH</span></div>{activeStudents.map((student) => { const assignment = assignmentFor(student.id, activeCohort?.id || null); return <div key={student.id}><strong>{student.full_name}<small>{student.grade} · {student.school}</small></strong><span>{student.account_id ? "Access ready" : "Not invited"}</span><span>{mentorName(assignment?.mentor_id)}</span></div>; })}</div>{!activeStudents.length && <p className={styles.empty}>Add a participant above to begin the new cycle.</p>}</section>
+    <section className={styles.listSection}><div className={styles.sectionTitle}><div><p>CURRENT ROSTER</p><h2>Who is ready for the next step</h2></div><span className={styles.quietNote}>{activeStudents.length} active participants</span></div><div className={styles.setupRoster}><div className={styles.setupRosterHead}><span>MENTEE</span><span>PORTAL ACCESS</span><span>MENTOR MATCH</span></div>{activeStudents.map((student) => { const assignment = assignmentFor(student.id); return <div key={student.id}><strong>{student.full_name}<small>{student.grade} · {student.school}</small></strong><span>{student.account_id ? "Access ready" : "Not invited"}</span><span>{mentorName(assignment?.mentor_id)}</span></div>; })}</div>{!activeStudents.length && <p className={styles.empty}>Add a participant above to begin the new cycle.</p>}</section>
   </>;
 }
 

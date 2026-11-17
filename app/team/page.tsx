@@ -3,7 +3,7 @@ import { PageShell } from "../components/SiteChrome";
 import { team } from "./people";
 import styles from "./team.module.css";
 
-export const metadata: Metadata = { title: "Meet the Team | Future of Music", description: "Meet the team behind Future of Music." };
+export const metadata: Metadata = { title: "Meet the Team | Future of Music", description: "Meet Aereon Robinson, Qwentin Blassingame, and Gabriel Walker—the team behind Future of Music." };
 
 export default function TeamPage() {
   return <PageShell active="team">

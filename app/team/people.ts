@@ -8,6 +8,14 @@ export const team = [
     ],
   },
   {
+    slug: "qwentin", name: "Qwentin Blassingame", role: "Managing Director",
+    image: "/images/qwentin.webp", color: "coral", email: "qwentin@fomusic.org",
+    bio: [
+      "Qwentin Blassingame supports Future of Music’s program operations, marketing, and outreach. As Managing Director, he helps connect students, families, and community partners with the organization’s programs.",
+      "Qwentin brings experience in media production, digital strategy, coaching, and partnership development. As a young creator himself, he understands the importance of helping young people find opportunities and people they can learn from."
+    ],
+  },
+  {
     slug: "gabriel", name: "Gabriel Walker", role: "Program Coach",
     image: "/images/gabriel.webp", color: "yellow", email: "info@fomusic.org",
     bio: [
