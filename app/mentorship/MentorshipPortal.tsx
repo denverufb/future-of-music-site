@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { getMentorshipClient } from "./client";
 import {
@@ -29,6 +29,7 @@ import { fullCurriculum } from "./curriculum-data";
 import styles from "./mentorship.module.css";
 
 type View = "today" | "meetings" | "students" | "curriculum" | "reports" | "applications" | "setup";
+type PortalMode = "administration" | "mentor";
 type MeetingDraft = {
   id?: string;
   meeting_at: string;
@@ -109,6 +110,7 @@ export default function MentorshipPortal() {
   const [ready, setReady] = useState(true);
   const [data, setData] = useState<WorkspaceData | null>(null);
   const [view, setView] = useState<View>("today");
+  const [portalMode, setPortalMode] = useState<PortalMode | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [meetingDraft, setMeetingDraft] = useState<MeetingDraft | null>(null);
   const [showStudentForm, setShowStudentForm] = useState(false);
@@ -133,6 +135,7 @@ export default function MentorshipPortal() {
       if (!nextSession) {
         setData(null);
         setView("today");
+        setPortalMode(null);
         setMeetingDraft(null);
         setSelectedStudentId(null);
       }
@@ -189,7 +192,7 @@ export default function MentorshipPortal() {
       let goals: Goal[] = [];
       let applications: MentorshipApplication[] = [];
       let team: Profile[] = [profile];
-      const isProgramLead = profile.role === "admin" || profile.role === "supervisor";
+      const isProgramLead = profile.role === "admin";
 
       if (isProgramLead) {
         const [studentsResult, assignmentsResult, meetingsResult, gradesResult, goalsResult, applicationsResult] = await Promise.all([
@@ -279,14 +282,9 @@ export default function MentorshipPortal() {
 
   useEffect(() => { void load(); }, [load]);
 
-  const canManage = data?.profile.role === "admin" || data?.profile.role === "mentor";
-  const isAdmin = data?.profile.role === "admin";
-  const selectedStudent = data?.students.find((student) => student.id === selectedStudentId) || null;
-  const upcoming = useMemo(() => (data?.meetings || []).filter((meeting) => new Date(meeting.meeting_at) >= new Date() && meeting.status !== "cancelled").sort((a, b) => a.meeting_at.localeCompare(b.meeting_at)), [data?.meetings]);
-
-  function openMeeting(meeting?: Meeting) {
-    if (!data) return;
-    setMeetingDraft(freshDraft(data.students.filter((student) => student.active), data.meetings, meeting));
+  function openMeeting(meeting?: Meeting, source = data) {
+    if (!source) return;
+    setMeetingDraft(freshDraft(source.students.filter((student) => student.active), source.meetings, meeting));
     setView("meetings");
     setError("");
     setNotice("");
@@ -348,7 +346,7 @@ export default function MentorshipPortal() {
 
   async function createStudent(event: FormEvent) {
     event.preventDefault();
-    if (!isAdmin) return;
+    if (data?.profile.role !== "admin") return;
     const form = new FormData(event.currentTarget as HTMLFormElement);
     setSaving(true);
     setError("");
@@ -403,22 +401,54 @@ export default function MentorshipPortal() {
   if (!data) return <SetupState error={error} onRetry={() => void load()} onSignOut={() => void signOut()} />;
 
   const role = data.profile.role;
+  const isAdministrationPortal = role === "admin" && portalMode === "administration";
+  const mentorAssignments = data.assignments.filter((assignment) => assignment.mentor_id === data.profile.user_id);
+  const mentorStudentIds = new Set(mentorAssignments.map((assignment) => assignment.student_id));
+  const mentorWorkspaceData: WorkspaceData = role === "admin"
+    ? {
+      ...data,
+      team: [data.profile],
+      assignments: mentorAssignments,
+      students: data.students.filter((student) => mentorStudentIds.has(student.id)),
+      meetings: data.meetings.filter((meeting) => meeting.mentor_id === data.profile.user_id),
+      grades: data.grades.filter((grade) => mentorStudentIds.has(grade.student_id)),
+      goals: data.goals.filter((goal) => mentorStudentIds.has(goal.student_id)),
+      applications: [],
+    }
+    : data;
+  const workspaceData = isAdministrationPortal ? data : mentorWorkspaceData;
+  const workspaceRole: PortalRole = isAdministrationPortal ? "admin" : role === "admin" ? "mentor" : role;
+  const canManage = workspaceRole === "admin" || workspaceRole === "mentor";
+  const isAdmin = isAdministrationPortal;
+  const selectedStudent = workspaceData.students.find((student) => student.id === selectedStudentId) || null;
   const profileName = data.profile.display_name.split(" ")[0] || "there";
+
+  function choosePortal(next: PortalMode) {
+    setPortalMode(next);
+    setView("today");
+    setSelectedStudentId(null);
+    setMeetingDraft(null);
+    setError("");
+    setNotice("");
+  }
+
+  if (role === "admin" && !portalMode) return <PortalPicker profile={data.profile} onChoose={choosePortal} onSignOut={() => void signOut()} />;
+
   const navItems: { id: View; label: string; visible: boolean }[] = [
     { id: "today", label: "Today", visible: true },
     { id: "meetings", label: "Meetings", visible: true },
-    { id: "students", label: role !== "mentee" ? "Students" : "My profile", visible: true },
+    { id: "students", label: workspaceRole !== "mentee" ? "Students" : "My profile", visible: true },
     { id: "curriculum", label: "Curriculum", visible: true },
-    { id: "reports", label: "Reports", visible: role === "admin" || role === "supervisor" },
-    { id: "applications", label: "Applications", visible: role === "admin" },
-    { id: "setup", label: "Program setup", visible: role === "admin" },
+    { id: "reports", label: "Reports", visible: isAdministrationPortal },
+    { id: "applications", label: "Applications", visible: isAdministrationPortal },
+    { id: "setup", label: "Program setup", visible: isAdministrationPortal },
   ];
 
   return <div className={styles.portal}>
     <a className={styles.skip} href="#workspace">Skip to workspace</a>
     <header className={styles.header}>
       <a href="/" className={styles.brand} aria-label="Future of Music home"><img src="/images/logo-square.png" alt="" /><span>Future of Music<small>Mentorship</small></span></a>
-      <div className={styles.profile}><span className={styles.avatar}>{data.profile.display_name.split(" ").map((part) => part[0]).slice(0, 2).join("")}</span><span><strong>{data.profile.display_name}</strong><small>{role === "admin" ? "Program administration" : role}</small></span><button type="button" onClick={() => void signOut()}>Sign out</button></div>
+      <div className={styles.profile}><span className={styles.avatar}>{data.profile.display_name.split(" ").map((part) => part[0]).slice(0, 2).join("")}</span><span><strong>{data.profile.display_name}</strong><small>{isAdministrationPortal ? "Administration portal" : workspaceRole}</small></span>{role === "admin" && <button type="button" onClick={() => setPortalMode(null)}>Switch portal</button>}<button type="button" onClick={() => void signOut()}>Sign out</button></div>
     </header>
     <div className={styles.shell}>
       <aside className={styles.sidebar} aria-label="Mentorship navigation">
@@ -429,17 +459,32 @@ export default function MentorshipPortal() {
       <main id="workspace" className={styles.workspace}>
         {error && <div className={styles.error} role="alert">{error}</div>}
         {notice && <div className={styles.notice} role="status">{notice}</div>}
-        {view === "today" && <TodayView name={profileName} role={role} students={data.students} meetings={data.meetings} goals={data.goals} onNewMeeting={() => openMeeting()} onOpenMeeting={openMeeting} onStudents={() => changeView("students")} />}
-        {view === "meetings" && (meetingDraft ? <MeetingEditor data={data} draft={meetingDraft} setDraft={setMeetingDraft} saving={saving} onSave={saveMeeting} onClose={() => setMeetingDraft(null)} /> : <MeetingsView meetings={data.meetings} students={data.students} canManage={Boolean(canManage)} onNew={() => openMeeting()} onOpen={openMeeting} />)}
-        {view === "students" && <StudentProfileView students={data.students} assignments={data.assignments} meetings={data.meetings} grades={data.grades} goals={data.goals} canManage={Boolean(canManage)} isAdmin={Boolean(isAdmin)} selected={selectedStudent} setSelected={setSelectedStudentId} onNew={() => setShowStudentForm(true)} onSaveGrade={saveGrade} saving={saving} />}
-        {view === "curriculum" && <CurriculumView items={data.curriculum} role={role} />}
-        {view === "reports" && <ReportingView data={data} />}
-        {view === "applications" && <ApplicationsView data={data} onRefresh={load} setError={setError} setNotice={setNotice} />}
-        {view === "setup" && <SetupView data={data} onRefresh={load} setError={setError} setNotice={setNotice} />}
+        {view === "today" && <TodayView name={profileName} role={workspaceRole} students={workspaceData.students} meetings={workspaceData.meetings} goals={workspaceData.goals} onNewMeeting={() => openMeeting(undefined, workspaceData)} onOpenMeeting={(meeting) => openMeeting(meeting, workspaceData)} onStudents={() => changeView("students")} />}
+        {view === "meetings" && (meetingDraft ? <MeetingEditor data={workspaceData} draft={meetingDraft} setDraft={setMeetingDraft} saving={saving} onSave={saveMeeting} onClose={() => setMeetingDraft(null)} /> : <MeetingsView meetings={workspaceData.meetings} students={workspaceData.students} canManage={canManage} onNew={() => openMeeting(undefined, workspaceData)} onOpen={(meeting) => openMeeting(meeting, workspaceData)} />)}
+        {view === "students" && <StudentProfileView students={workspaceData.students} assignments={workspaceData.assignments} meetings={workspaceData.meetings} grades={workspaceData.grades} goals={workspaceData.goals} canManage={canManage} isAdmin={isAdmin} selected={selectedStudent} setSelected={setSelectedStudentId} onNew={() => setShowStudentForm(true)} onSaveGrade={saveGrade} saving={saving} />}
+        {view === "curriculum" && <CurriculumView items={workspaceData.curriculum} role={workspaceRole} />}
+        {view === "reports" && isAdministrationPortal && <ReportingView data={data} />}
+        {view === "applications" && isAdministrationPortal && <ApplicationsView data={data} onRefresh={load} setError={setError} setNotice={setNotice} />}
+        {view === "setup" && isAdministrationPortal && <SetupView data={data} onRefresh={load} setError={setError} setNotice={setNotice} />}
       </main>
     </div>
     {showStudentForm && <Modal title="Add a student" onClose={() => setShowStudentForm(false)}><form className={styles.form} onSubmit={createStudent}><label>Student name<input required name="full_name" autoComplete="name" /></label><label>School<input required name="school" /></label><label>Grade<input required name="grade" placeholder="Example: 8th grade" /></label><label>Guardian name<input name="guardian_name" /></label><label>Guardian phone<input name="guardian_phone" type="tel" /></label><label>Guardian email<input name="guardian_email" type="email" /></label><button className={styles.primaryButton} disabled={saving}>{saving ? "Saving…" : "Add student"}</button></form></Modal>}
   </div>;
+}
+
+function PortalPicker({ profile, onChoose, onSignOut }: { profile: Profile; onChoose: (mode: PortalMode) => void; onSignOut: () => void }) {
+  return <main className={styles.portalPickerPage}>
+    <header className={styles.pickerHeader}><a href="/" className={styles.loginBrand}><img src="/images/logo-square.png" alt="Future of Music" />Future of Music <span>Mentorship</span></a><button className={styles.textButton} type="button" onClick={onSignOut}>Sign out</button></header>
+    <section className={styles.portalPicker}>
+      <p>WELCOME BACK</p>
+      <h1>Choose your<br /><em>workspace.</em></h1>
+      <span>{profile.display_name}, select the space you need right now. You can switch at any time without signing out.</span>
+      <div className={styles.portalChoices}>
+        <button type="button" onClick={() => onChoose("administration")}><span>01</span><div><strong>Administration portal</strong><small>Review applications, enrollment, mentor pairings, all meetings, and reports.</small></div><b>→</b></button>
+        <button type="button" onClick={() => onChoose("mentor")}><span>02</span><div><strong>Mentor portal</strong><small>Work with your assigned mentees, meetings, notes, grades, and curriculum.</small></div><b>→</b></button>
+      </div>
+    </section>
+  </main>;
 }
 
 function SignInPanel({ error, onError, onHelp, setHelp }: { error: string; onError: (message: string) => void; onHelp: boolean; setHelp: (value: boolean) => void }) {
@@ -731,6 +776,22 @@ function SetupView({ data, onRefresh, setError, setNotice }: { data: WorkspaceDa
     }
   }
 
+  async function removeMentorAccess(mentor: Profile) {
+    if (mentor.role !== "mentor") return;
+    if (!window.confirm(`Remove mentorship access for ${mentor.display_name}? Their meeting history will remain, but they will no longer be able to sign in or receive new mentee pairings.`)) return;
+    setBusy(true); setError("");
+    try {
+      const { error: issue } = await getMentorshipClient().from("mentorship_profiles").update({ active: false }).eq("user_id", mentor.user_id);
+      if (issue) throw issue;
+      setNotice(`${mentor.display_name}'s mentorship access was removed. Re-pair any active mentees from the matching step above.`);
+      await onRefresh();
+    } catch (issue) {
+      setError(errorText(issue));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return <>
     <section className={styles.heading}><div><p>PROGRAM SETUP</p><h1>Run the next mentorship cycle.</h1><span>Create a cohort, add participants, send secure access, and pair each mentee with the right mentor—all in one place.</span></div></section>
     <section className={styles.setupOverview}>
@@ -781,6 +842,10 @@ function SetupView({ data, onRefresh, setError, setNotice }: { data: WorkspaceDa
           <button className={styles.secondaryButton} disabled={busy || !data.cohorts.length || !mentors.length || !activeStudents.length}>Save pairing</button>
         </form>
       </section>
+    </section>
+    <section className={styles.listSection}>
+      <div className={styles.sectionTitle}><div><p>MENTOR ACCESS</p><h2>Current mentor accounts</h2></div><span className={styles.quietNote}>Removing access keeps past meeting records intact.</span></div>
+      <div className={styles.cohortList}>{mentors.filter((mentor) => mentor.role === "mentor").map((mentor) => <div className={styles.setupRow} key={mentor.user_id}><span><strong>{mentor.display_name}</strong><small>{mentor.email}</small></span><em>Active</em><button type="button" className={styles.textButton} disabled={busy} onClick={() => void removeMentorAccess(mentor)}>Remove access</button></div>)}{!mentors.some((mentor) => mentor.role === "mentor") && <p className={styles.empty}>No mentor accounts are active right now.</p>}</div>
     </section>
     <section className={styles.listSection}><div className={styles.sectionTitle}><div><p>CURRENT ROSTER</p><h2>Who is ready for the next step</h2></div><span className={styles.quietNote}>{activeStudents.length} active participants</span></div><div className={styles.setupRoster}><div className={styles.setupRosterHead}><span>MENTEE</span><span>PORTAL ACCESS</span><span>MENTOR MATCH</span></div>{activeStudents.map((student) => { const assignment = assignmentFor(student.id, activeCohort?.id || null); return <div key={student.id}><strong>{student.full_name}<small>{student.grade} · {student.school}</small></strong><span>{student.account_id ? "Access ready" : "Not invited"}</span><span>{mentorName(assignment?.mentor_id)}</span></div>; })}</div>{!activeStudents.length && <p className={styles.empty}>Add a participant above to begin the new cycle.</p>}</section>
   </>;

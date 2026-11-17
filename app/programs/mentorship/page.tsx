@@ -25,8 +25,20 @@ export default function ProgramMentorshipPage() {
         <div className="stipend"><strong>$50</strong><span>COMPLETION STIPEND FOR MENTEES WHO MEET THEIR WEEKLY COMMITMENT</span></div>
         <div className="button-row"><a className="button" href="#apply">Apply for mentorship <Arrow direction="down" /></a><a className="text-link" href="/mentorship/">Mentor & member sign in <Arrow direction="up" /></a></div>
       </div>
-      <div className="mentor-main-poster" aria-label="Three-month weekly mentorship cycle"><p>WEEKLY COMMITMENT</p><strong>3<br />MONTHS</strong><div><span>30 MINUTES</span><i></i><span>MENTOR</span><i></i><span>MENTEE</span></div></div>
+      <aside className="mentor-cycle" aria-label="Three-month weekly mentorship cycle">
+        <p>HOW THE CYCLE MOVES</p>
+        <h2>12 weekly<br /><em>check-ins.</em></h2>
+        <div className="mentor-cycle-path" aria-hidden="true"><i></i><i></i><i></i></div>
+        <ol>
+          <li><span>Month 1</span><strong>Meet + map</strong></li>
+          <li><span>Month 2</span><strong>Build momentum</strong></li>
+          <li><span>Month 3</span><strong>Plan forward</strong></li>
+        </ol>
+        <footer><strong>30 MIN</strong><span>weekly mentor meeting</span></footer>
+      </aside>
     </section>
+
+    <MentorshipApplication />
 
     <div className="mentor-promise-strip" aria-label="Mentorship program commitments">
       <span><strong>01</strong> Meet weekly</span>
@@ -51,6 +63,5 @@ export default function ProgramMentorshipPage() {
     </section>
 
     <ProgramGallery title="Mentorship in action" images={mentorshipGalleryImages} />
-    <MentorshipApplication />
   </PageShell>;
 }

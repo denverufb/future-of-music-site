@@ -33,14 +33,14 @@ export function MentorshipApplication() {
 
     event.currentTarget.reset();
     setStatus("sent");
-    setMessage("Your application has been received. Future of Music will follow up using the contact information you provided.");
+    setMessage("Your application is now in Future of Music’s private application inbox. We will follow up using the contact information you provided.");
   }
 
   return <section id="apply" className={styles.section} aria-labelledby="application-heading">
     <div className={styles.intro}>
       <p>MENTORSHIP APPLICATION</p>
       <h2 id="application-heading">Ready to<br /><em>grow with us?</em></h2>
-      <span>For St. Louis youth in grades 5–12. Every field below is required.</span>
+      <span>For St. Louis youth in grades 5–12. Every field below is required. Your completed form goes directly to Future of Music&apos;s private application inbox.</span>
       <div className={styles.facts}><div><strong>3 months</strong><small>program cycle</small></div><div><strong>30 min</strong><small>weekly meeting</small></div><div><strong>$50</strong><small>completion stipend</small></div></div>
     </div>
     <form className={styles.form} onSubmit={submit}>
