@@ -15,6 +15,22 @@
 .readBio { display: flex; justify-content: space-between; align-items: center; font-size: .9rem; font-weight: 600; color: var(--blue-dark); margin-top: auto; padding-top:18px; border-top:var(--line); }
 .card:hover .readBio { text-decoration: underline; text-underline-offset: 5px; }
 .card:hover img { transform: scale(1.025); }
+.openRole { margin-top: 72px; padding-top: 34px; border-top: 3px solid var(--golden-earth); }
+.openRole > header { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .78fr); gap: 22px 48px; align-items: end; padding-bottom: 30px; border-bottom: var(--line); }
+.openRole > header p, .roleDetails > div > p { margin: 0; color: var(--blue-dark); font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.openRole > header h2 { grid-column: 1; margin: 0; font-size: clamp(2rem, 4vw, 3.55rem); line-height: 1.06; letter-spacing: -.045em; }
+.openRole > header span { grid-column: 2; grid-row: 1 / span 2; color: #494752; font-size: 1.05rem; line-height: 1.6; }
+.roleFacts { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: var(--line); }
+.roleFacts > div { min-height: 126px; padding: 25px 28px 22px 0; display: flex; flex-direction: column; justify-content: flex-end; }
+.roleFacts > div + div { padding-left: 28px; border-left: var(--line); }
+.roleFacts strong { font-size: clamp(1.65rem, 3vw, 2.5rem); line-height: 1; letter-spacing: -.05em; color: var(--blue-dark); }
+.roleFacts span { margin-top: 9px; color: #494752; font-size: .9rem; }
+.roleDetails { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; padding: 31px 0; border-bottom: var(--line); }
+.roleDetails ul { display: grid; gap: 11px; margin: 18px 0 0; padding: 0; list-style: none; }
+.roleDetails li { position: relative; padding-left: 17px; color: #33313a; line-height: 1.55; }
+.roleDetails li::before { position: absolute; left: 0; color: var(--golden-earth); content: "•"; font-weight: 900; }
+.roleLink { display: inline-flex; align-items: center; justify-content: space-between; min-width: 220px; margin-top: 26px; color: var(--blue-dark); font-size: 1rem; font-weight: 750; text-decoration: underline; text-underline-offset: 5px; }
+.roleLink:hover { color: var(--golden-earth); }
 .card:focus-visible, .back:focus-visible, .profile a:focus-visible { outline: 3px solid var(--blue); outline-offset: 7px; }
 .back { display: inline-block; margin-bottom: 32px; color: var(--blue-dark); font-weight: 750; text-decoration: underline; text-underline-offset: 5px; }
 .profileGrid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: start; gap: clamp(28px, 5vw, 72px); }
@@ -30,6 +46,9 @@
   .grid { gap: 18px; }
   .cardCopy > p { font-size: .9rem; }
   .profileGrid { grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); gap: 28px; }
+  .openRole > header { grid-template-columns: 1fr; gap: 16px; }
+  .openRole > header h2, .openRole > header span { grid-column: auto; grid-row: auto; }
+  .roleDetails { gap: 28px; }
 }
 @media (max-width: 650px) {
   .directory, .profile { width: calc(100% - 40px); padding-block: 30px 44px; }
@@ -40,5 +59,10 @@
   .profileGrid { grid-template-columns: 1fr; }
   .profileGrid figure { width: min(100%, 380px); }
   .profileCopy { padding-top: 0; }
+  .openRole { margin-top: 48px; padding-top: 25px; }
+  .roleFacts, .roleDetails { grid-template-columns: 1fr; }
+  .roleFacts > div { min-height: auto; padding: 20px 0; }
+  .roleFacts > div + div { padding-left: 0; border-left: 0; border-top: var(--line); }
+  .roleDetails { gap: 28px; }
 }
 @media (prefers-reduced-motion: reduce) { .portrait img { transition: none; } .card:hover img { transform: none; } }

@@ -15,6 +15,37 @@ export default function TeamPage() {
           <div className={styles.cardCopy}><h2>{person.name}</h2><p>{person.role}</p><span className={styles.readBio}>Read bio <span aria-hidden="true">↗</span></span></div>
         </a>)}
       </div>
+      <section className={styles.openRole} aria-labelledby="mentor-role-title">
+        <header>
+          <p>Open opportunity</p>
+          <h2 id="mentor-role-title">Youth Development Mentor</h2>
+          <span>A three-month contract supporting up to two mentees through consistent, youth-centered weekly mentorship.</span>
+        </header>
+        <div className={styles.roleFacts} aria-label="Youth Development Mentor role details">
+          <div><strong>Up to $150</strong><span>per mentee</span></div>
+          <div><strong>Up to 2</strong><span>mentees at a time</span></div>
+          <div><strong>10 meetings</strong><span>minimum per mentee</span></div>
+        </div>
+        <div className={styles.roleDetails}>
+          <div>
+            <p>What you&apos;ll do</p>
+            <ul>
+              <li>Meet with each assigned mentee weekly, aiming for focused 30-minute conversations.</li>
+              <li>Guide goal setting, progress check-ins, and the required mentorship curriculum.</li>
+              <li>Document completed meetings and help mentees complete program surveys.</li>
+            </ul>
+          </div>
+          <div>
+            <p>What the program builds</p>
+            <ul>
+              <li>Academic habits, organization, and confidence.</li>
+              <li>College and career readiness, communication, and future planning.</li>
+              <li>Personal development, leadership, collaboration, and optional entrepreneurship exploration.</li>
+            </ul>
+          </div>
+        </div>
+        <a className={styles.roleLink} href="mailto:info@fomusic.org?subject=Youth%20Development%20Mentor%20Interest">Express interest <span aria-hidden="true">↗</span></a>
+      </section>
     </section>
   </PageShell>;
 }
