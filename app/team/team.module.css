@@ -20,7 +20,7 @@
 .openRole > header p, .roleDetails > div > p { margin: 0; color: var(--blue-dark); font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .openRole > header h2 { grid-column: 1; margin: 0; font-size: clamp(2rem, 4vw, 3.55rem); line-height: 1.06; letter-spacing: -.045em; }
 .openRole > header span { grid-column: 2; grid-row: 1 / span 2; color: #494752; font-size: 1.05rem; line-height: 1.6; }
-.roleFacts { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: var(--line); }
+.roleFacts { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: var(--line); }
 .roleFacts > div { min-height: 126px; padding: 25px 28px 22px 0; display: flex; flex-direction: column; justify-content: flex-end; }
 .roleFacts > div + div { padding-left: 28px; border-left: var(--line); }
 .roleFacts strong { font-size: clamp(1.65rem, 3vw, 2.5rem); line-height: 1; letter-spacing: -.05em; color: var(--blue-dark); }
@@ -31,6 +31,23 @@
 .roleDetails li::before { position: absolute; left: 0; color: var(--golden-earth); content: "•"; font-weight: 900; }
 .roleLink { display: inline-flex; align-items: center; justify-content: space-between; min-width: 220px; margin-top: 26px; color: var(--blue-dark); font-size: 1rem; font-weight: 750; text-decoration: underline; text-underline-offset: 5px; }
 .roleLink:hover { color: var(--golden-earth); }
+.mentorApplication { display: grid; grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr); gap: 48px; margin-top: 52px; padding-top: 34px; border-top: 3px solid var(--golden-earth); }
+.applicationIntro { align-self: start; }
+.applicationIntro > p { margin: 0 0 14px; color: var(--blue-dark); font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.applicationIntro h3 { margin: 0; font-size: clamp(2rem, 3.55vw, 3.25rem); line-height: 1.08; letter-spacing: -.05em; }
+.applicationIntro > span { display: block; max-width: 360px; margin-top: 20px; color: #494752; line-height: 1.6; }
+.mentorForm { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 26px; border: 1px solid var(--line); background: #f7f2e7; }
+.mentorForm label { display: grid; gap: 7px; color: var(--blue-dark); font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.mentorForm label small { color: #6a6770; font-size: .64rem; font-weight: 600; letter-spacing: .03em; }
+.mentorForm input, .mentorForm textarea { width: 100%; border: 1px solid #494752; border-radius: 0; background: #fffdf7; color: #242331; padding: 12px; font: 500 1rem/1.35 var(--font-body), Arial, sans-serif; letter-spacing: 0; text-transform: none; }
+.mentorForm textarea { min-height: 130px; resize: vertical; }
+.mentorForm input:focus, .mentorForm textarea:focus { outline: 3px solid var(--golden-sand); outline-offset: 1px; }
+.wideField, .formSuccess, .formError { grid-column: 1 / -1; }
+.submitApplication { display: inline-flex; align-items: center; justify-content: space-between; min-width: 205px; margin-top: 4px; border: 0; border-radius: 0; background: var(--blue-dark); color: #fff; padding: 14px 16px; font: 800 .82rem/1 var(--font-body), Arial, sans-serif; letter-spacing: .04em; cursor: pointer; }
+.submitApplication:hover { background: var(--golden-earth); }
+.submitApplication:disabled { cursor: wait; opacity: .7; }
+.formSuccess, .formError { margin: 0; padding: 12px 14px; border-left: 4px solid var(--blue-dark); background: #e1e7ee; color: #242331; font-size: .88rem; font-weight: 650; line-height: 1.5; }
+.formError { border-color: #a44d4d; background: #f7e4df; }
 .card:focus-visible, .back:focus-visible, .profile a:focus-visible { outline: 3px solid var(--blue); outline-offset: 7px; }
 .back { display: inline-block; margin-bottom: 32px; color: var(--blue-dark); font-weight: 750; text-decoration: underline; text-underline-offset: 5px; }
 .profileGrid { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); align-items: start; gap: clamp(28px, 5vw, 72px); }
@@ -48,7 +65,9 @@
   .profileGrid { grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); gap: 28px; }
   .openRole > header { grid-template-columns: 1fr; gap: 16px; }
   .openRole > header h2, .openRole > header span { grid-column: auto; grid-row: auto; }
+  .roleFacts { grid-template-columns: repeat(2, 1fr); }
   .roleDetails { gap: 28px; }
+  .mentorApplication { grid-template-columns: 1fr; gap: 28px; }
 }
 @media (max-width: 650px) {
   .directory, .profile { width: calc(100% - 40px); padding-block: 30px 44px; }
@@ -60,9 +79,11 @@
   .profileGrid figure { width: min(100%, 380px); }
   .profileCopy { padding-top: 0; }
   .openRole { margin-top: 48px; padding-top: 25px; }
-  .roleFacts, .roleDetails { grid-template-columns: 1fr; }
+  .roleFacts, .roleDetails, .mentorForm { grid-template-columns: 1fr; }
   .roleFacts > div { min-height: auto; padding: 20px 0; }
   .roleFacts > div + div { padding-left: 0; border-left: 0; border-top: var(--line); }
   .roleDetails { gap: 28px; }
+  .wideField, .formSuccess, .formError { grid-column: auto; }
+  .mentorForm { padding: 22px 18px; }
 }
 @media (prefers-reduced-motion: reduce) { .portrait img { transition: none; } .card:hover img { transform: none; } }

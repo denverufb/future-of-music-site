@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PageShell } from "../components/SiteChrome";
 import { team } from "./people";
+import { YouthDevelopmentMentorApplication } from "./YouthDevelopmentMentorApplication";
 import styles from "./team.module.css";
 
 export const metadata: Metadata = { title: "Meet the Team | Future of Music", description: "Meet Aereon Robinson, Qwentin Blassingame, and Gabriel Walker—the team behind Future of Music." };
@@ -19,12 +20,13 @@ export default function TeamPage() {
         <header>
           <p>Open opportunity</p>
           <h2 id="mentor-role-title">Youth Development Mentor</h2>
-          <span>A three-month contract supporting up to two mentees through consistent, youth-centered weekly mentorship.</span>
+          <span>A three-month contract supporting up to three mentees through consistent, youth-centered weekly mentorship.</span>
         </header>
         <div className={styles.roleFacts} aria-label="Youth Development Mentor role details">
           <div><strong>Up to $150</strong><span>per mentee</span></div>
-          <div><strong>Up to 2</strong><span>mentees at a time</span></div>
+          <div><strong>Up to 3</strong><span>mentees per cycle</span></div>
           <div><strong>10 meetings</strong><span>minimum per mentee</span></div>
+          <div><strong>Up to $450</strong><span>maximum per cycle</span></div>
         </div>
         <div className={styles.roleDetails}>
           <div>
@@ -44,7 +46,7 @@ export default function TeamPage() {
             </ul>
           </div>
         </div>
-        <a className={styles.roleLink} href="mailto:info@fomusic.org?subject=Youth%20Development%20Mentor%20Interest">Express interest <span aria-hidden="true">↗</span></a>
+        <YouthDevelopmentMentorApplication />
       </section>
     </section>
   </PageShell>;
