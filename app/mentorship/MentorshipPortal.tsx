@@ -27,7 +27,8 @@ import {
   type WorkspaceData,
 } from "./model";
 import { fullCurriculum } from "./curriculum-data";
-import { MeetingWorkspace, MeetingsDashboard, RecurringMeetingModal, StudentDashboard } from "./MentorshipDashboardViews";
+import { RecurringMeetingModal, StudentDashboard } from "./MentorshipDashboardViews";
+import { MeetingHome, MeetingRoom, CurriculumBrowser } from "./MeetingExperience";
 import styles from "./mentorship.module.css";
 
 type View = "today" | "meetings" | "students" | "curriculum" | "reports" | "applications" | "setup";
@@ -470,8 +471,8 @@ export default function MentorshipPortal() {
           location: String(form.get("location") || "virtual"),
           shared_notes: "",
           status: "scheduled",
-          recurrence_id: recurrenceId,
-          recurrence_label: "Weekly meeting",
+          recurrence_id: count > 1 ? recurrenceId : null,
+          recurrence_label: count > 1 ? "Weekly meeting" : "",
         };
       });
       const { data: savedMeetings, error: saveError } = await client.from("mentorship_meetings").insert(series).select("id");
@@ -541,7 +542,7 @@ export default function MentorshipPortal() {
   const workspaceRole: PortalRole = isAdministrationPortal ? "admin" : role === "admin" ? "mentor" : role;
   const canManage = workspaceRole === "admin" || workspaceRole === "mentor";
   const isAdmin = isAdministrationPortal;
-  const selectedStudent = workspaceData.students.find((student) => student.id === selectedStudentId) || null;
+  const selectedStudent = workspaceData.students.find((student) => student.id === selectedStudentId) || (workspaceRole === "mentee" ? workspaceData.students[0] || null : null);
   const profileName = data.profile.display_name.split(" ")[0] || "there";
 
   function choosePortal(next: PortalMode) {
@@ -581,9 +582,9 @@ export default function MentorshipPortal() {
         {error && <div className={styles.error} role="alert">{error}</div>}
         {notice && <div className={styles.notice} role="status">{notice}</div>}
         {view === "today" && <TodayView name={profileName} role={workspaceRole} students={workspaceData.students} meetings={workspaceData.meetings} goals={workspaceData.goals} onNewMeeting={() => openMeeting(undefined, workspaceData)} onOpenMeeting={(meeting) => openMeeting(meeting, workspaceData)} onStudents={() => changeView("students")} />}
-        {view === "meetings" && (meetingDraft ? <MeetingWorkspace data={workspaceData} draft={meetingDraft} setDraft={setMeetingDraft} saving={saving} onSave={saveMeeting} onClose={() => setMeetingDraft(null)} /> : <MeetingsDashboard meetings={workspaceData.meetings} students={workspaceData.students} canManage={canManage} saving={saving} onNew={() => openMeeting(undefined, workspaceData)} onOpen={(meeting) => openMeeting(meeting, workspaceData)} onRecurring={() => setShowRecurringMeeting(true)} onCancel={(meeting, entireSeries) => void cancelMeeting(meeting, entireSeries)} />)}
-        {view === "students" && <StudentDashboard students={workspaceData.students} assignments={workspaceData.assignments} meetings={workspaceData.meetings} grades={workspaceData.grades} goals={workspaceData.goals} canManage={canManage} isAdmin={isAdmin} selected={selectedStudent} setSelected={setSelectedStudentId} onNew={() => setShowStudentForm(true)} onSaveGrade={saveGrade} saving={saving} />}
-        {view === "curriculum" && <CurriculumView items={workspaceData.curriculum} role={workspaceRole} />}
+        {view === "meetings" && (meetingDraft ? <MeetingRoom data={workspaceData} draft={meetingDraft} setDraft={setMeetingDraft} saving={saving} onSave={saveMeeting} onClose={() => setMeetingDraft(null)} /> : <MeetingHome meetings={workspaceData.meetings} students={workspaceData.students} canManage={canManage} saving={saving} onNew={() => openMeeting(undefined, workspaceData)} onOpen={(meeting) => openMeeting(meeting, workspaceData)} onRecurring={() => setShowRecurringMeeting(true)} onCancel={(meeting, entireSeries) => void cancelMeeting(meeting, entireSeries)} />)}
+        {view === "students" && <><StudentDashboard students={workspaceData.students} assignments={workspaceData.assignments} meetings={workspaceData.meetings} grades={workspaceData.grades} goals={workspaceData.goals} canManage={canManage} isAdmin={isAdmin} selected={selectedStudent} setSelected={setSelectedStudentId} onNew={() => setShowStudentForm(true)} onSaveGrade={saveGrade} saving={saving} />{selectedStudent && <section className={styles.meetingGoals}><p>SHARED GOALS FROM MEETINGS</p><h2>Next steps</h2>{workspaceData.meetings.filter((meeting) => meeting.status === "complete").map((meeting) => ({ meeting, goal: meeting.meeting_students?.find((entry) => entry.student_id === selectedStudent.id)?.goal })).filter((entry) => entry.goal).map(({ meeting, goal }) => <p key={meeting.id}><strong>{displayDate(meeting.meeting_at)}</strong> · {goal}</p>)}</section>}</>}
+        {view === "curriculum" && <CurriculumBrowser items={workspaceData.curriculum} />}
         {view === "reports" && isAdministrationPortal && <ReportingView data={data} />}
         {view === "applications" && isAdministrationPortal && <ApplicationsView data={data} onRefresh={load} setError={setError} setNotice={setNotice} />}
         {view === "setup" && isAdministrationPortal && <SetupView data={data} onRefresh={load} setError={setError} setNotice={setNotice} />}
