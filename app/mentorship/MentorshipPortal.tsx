@@ -20,12 +20,14 @@ import {
   type Meeting,
   type MeetingStudent,
   type MentorshipApplication,
+  type PrivateMeetingNote,
   type PortalRole,
   type Profile,
   type Student,
   type WorkspaceData,
 } from "./model";
 import { fullCurriculum } from "./curriculum-data";
+import { MeetingWorkspace, MeetingsDashboard, RecurringMeetingModal, StudentDashboard } from "./MentorshipDashboardViews";
 import styles from "./mentorship.module.css";
 
 type View = "today" | "meetings" | "students" | "curriculum" | "reports" | "applications" | "setup";
@@ -34,8 +36,9 @@ type MeetingDraft = {
   id?: string;
   meeting_at: string;
   duration_minutes: number;
+  duration_seconds: number;
   location: "virtual" | "in_person" | "phone";
-  shared_notes: string;
+  private_notes: string;
   status: "scheduled" | "complete" | "cancelled";
   studentIds: string[];
   individual: Record<string, Pick<MeetingStudent, "meeting_number" | "attendance" | "personal_notes" | "goal" | "progress">>;
@@ -45,7 +48,7 @@ function blankIndividual(meetingNumber = 1): MeetingDraft["individual"][string] 
   return { meeting_number: meetingNumber, attendance: "present", personal_notes: "", goal: "", progress: "on_track" };
 }
 
-function freshDraft(students: Student[], meetings: Meeting[], meeting?: Meeting): MeetingDraft {
+function freshDraft(students: Student[], meetings: Meeting[], meeting?: Meeting, privateNotes: PrivateMeetingNote[] = []): MeetingDraft {
   const current = meeting?.meeting_students || [];
   const studentIds = current.length ? current.map((item) => item.student_id) : students.slice(0, 1).map((student) => student.id);
   const individual: MeetingDraft["individual"] = {};
@@ -59,8 +62,9 @@ function freshDraft(students: Student[], meetings: Meeting[], meeting?: Meeting)
     id: meeting?.id,
     meeting_at: toDateTimeLocal(meeting?.meeting_at || new Date().toISOString()),
     duration_minutes: meeting?.duration_minutes || 45,
+    duration_seconds: meeting?.duration_seconds ?? (meeting?.status === "complete" ? (meeting.duration_minutes || 0) * 60 : 0),
     location: meeting?.location || "virtual",
-    shared_notes: meeting?.shared_notes || "",
+    private_notes: meeting ? (privateNotes.find((note) => note.meeting_id === meeting.id)?.content || meeting.shared_notes || "") : "",
     status: meeting?.status || "complete",
     studentIds,
     individual,
@@ -113,6 +117,7 @@ export default function MentorshipPortal() {
   const [portalMode, setPortalMode] = useState<PortalMode | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [meetingDraft, setMeetingDraft] = useState<MeetingDraft | null>(null);
+  const [showRecurringMeeting, setShowRecurringMeeting] = useState(false);
   const [showStudentForm, setShowStudentForm] = useState(false);
   const [showLoginHelp, setShowLoginHelp] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -192,13 +197,14 @@ export default function MentorshipPortal() {
       let goals: Goal[] = [];
       let applications: MentorshipApplication[] = [];
       let team: Profile[] = [profile];
+      let privateNotes: PrivateMeetingNote[] = [];
       const isProgramLead = profile.role === "admin";
 
       if (isProgramLead) {
         const [studentsResult, assignmentsResult, meetingsResult, gradesResult, goalsResult, applicationsResult] = await Promise.all([
           client.from("mentorship_students").select("id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at").order("full_name"),
           client.from("mentorship_assignments").select("id,mentor_id,student_id,cohort_id,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at),cohort:mentorship_cohorts(id,title,starts_on,ends_on,active)"),
-          client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,location,shared_notes,status,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at))").order("meeting_at", { ascending: false }),
+          client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,duration_seconds,location,shared_notes,status,recurrence_id,recurrence_label,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at))").order("meeting_at", { ascending: false }),
           client.from("mentorship_grades").select("id,student_id,subject,letter_grade,percentage,missing_assignments,reported_on").order("reported_on", { ascending: false }),
           client.from("mentorship_goals").select("id,student_id,title,detail,status,target_date,updated_at").order("updated_at", { ascending: false }),
           profile.role === "admin"
@@ -225,7 +231,7 @@ export default function MentorshipPortal() {
         students = assignments.map((assignment) => assignment.student).filter((student): student is Student => Boolean(student));
         const studentIds = students.map((student) => student.id);
         const [meetingsResult, gradesResult, goalsResult] = await Promise.all([
-          client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,location,shared_notes,status,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at))").eq("mentor_id", session.user.id).order("meeting_at", { ascending: false }),
+          client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,duration_seconds,location,shared_notes,status,recurrence_id,recurrence_label,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at))").eq("mentor_id", session.user.id).order("meeting_at", { ascending: false }),
           studentIds.length ? client.from("mentorship_grades").select("id,student_id,subject,letter_grade,percentage,missing_assignments,reported_on").in("student_id", studentIds).order("reported_on", { ascending: false }) : Promise.resolve({ data: [], error: null }),
           studentIds.length ? client.from("mentorship_goals").select("id,student_id,title,detail,status,target_date,updated_at").in("student_id", studentIds).order("updated_at", { ascending: false }) : Promise.resolve({ data: [], error: null }),
         ]);
@@ -244,7 +250,7 @@ export default function MentorshipPortal() {
         const studentId = studentData?.id;
         if (studentId) {
           const [meetingsResult, gradesResult, goalsResult, assignmentResult] = await Promise.all([
-            client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,location,shared_notes,status,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at))").order("meeting_at", { ascending: false }),
+            client.from("mentorship_meetings").select("id,mentor_id,cohort_id,meeting_at,duration_minutes,duration_seconds,location,shared_notes,status,recurrence_id,recurrence_label,created_at,updated_at,meeting_students:mentorship_meeting_students(id,student_id,attendance,personal_notes,goal,progress,student:mentorship_students(id,account_id,full_name,school,grade,guardian_name,guardian_email,guardian_phone,active,created_at))").order("meeting_at", { ascending: false }),
             client.from("mentorship_grades").select("id,student_id,subject,letter_grade,percentage,missing_assignments,reported_on").eq("student_id", studentId).order("reported_on", { ascending: false }),
             client.from("mentorship_goals").select("id,student_id,title,detail,status,target_date,updated_at").eq("student_id", studentId).order("updated_at", { ascending: false }),
             client.from("mentorship_assignments").select("id,mentor_id,student_id,cohort_id,cohort:mentorship_cohorts(id,title,starts_on,ends_on,active)").eq("student_id", studentId),
@@ -255,6 +261,15 @@ export default function MentorshipPortal() {
           goals = (goalsResult.data || []) as Goal[];
           assignments = relationshipRows(assignmentResult.data);
         }
+      }
+
+      if (profile.role === "admin" || profile.role === "mentor") {
+        const { data: notesData, error: notesError } = await client
+          .from("mentorship_private_notes")
+          .select("id,meeting_id,author_id,content,created_at,updated_at")
+          .order("updated_at", { ascending: false });
+        if (notesError && notesError.code !== "42P01" && notesError.code !== "PGRST205") throw notesError;
+        privateNotes = (notesData || []) as PrivateMeetingNote[];
       }
 
       const [curriculumResult, cohortsResult] = await Promise.all([curriculumRequest, cohortsRequest]);
@@ -271,6 +286,7 @@ export default function MentorshipPortal() {
         goals,
         curriculum: ((curriculumResult.data?.length || 0) >= fullCurriculum.length ? curriculumResult.data : fullCurriculum) as CurriculumItem[],
         applications,
+        privateNotes,
       });
     } catch (issue) {
       setData(null);
@@ -284,7 +300,7 @@ export default function MentorshipPortal() {
 
   function openMeeting(meeting?: Meeting, source = data) {
     if (!source) return;
-    setMeetingDraft(freshDraft(source.students.filter((student) => student.active), source.meetings, meeting));
+    setMeetingDraft(freshDraft(source.students.filter((student) => student.active), source.meetings, meeting, source.privateNotes));
     setView("meetings");
     setError("");
     setNotice("");
@@ -301,9 +317,10 @@ export default function MentorshipPortal() {
     await getMentorshipClient().auth.signOut({ scope: "local" });
   }
 
-  async function saveMeeting(event: FormEvent) {
+  async function saveMeeting(event: FormEvent, draftForSave?: MeetingDraft) {
     event.preventDefault();
-    if (!data || !meetingDraft || !session || !canManage || meetingDraft.studentIds.length === 0) {
+    const activeDraft = draftForSave || meetingDraft;
+    if (!data || !activeDraft || !session || !canManage || activeDraft.studentIds.length === 0) {
       setError("Choose at least one student before saving the meeting.");
       return;
     }
@@ -311,29 +328,47 @@ export default function MentorshipPortal() {
     setError("");
     try {
       const client = getMentorshipClient();
-      const cohortId = data.assignments.find((assignment) => assignment.student_id === meetingDraft.studentIds[0])?.cohort_id || null;
+      const cohortId = data.assignments.find((assignment) => assignment.student_id === activeDraft.studentIds[0])?.cohort_id || null;
       const payload = {
-        mentor_id: session.user.id,
+        mentor_id: data.meetings.find((meeting) => meeting.id === activeDraft.id)?.mentor_id || session.user.id,
         cohort_id: cohortId,
-        meeting_at: new Date(meetingDraft.meeting_at).toISOString(),
-        duration_minutes: Number(meetingDraft.duration_minutes) || 0,
-        location: meetingDraft.location,
-        shared_notes: meetingDraft.shared_notes.trim(),
-        status: meetingDraft.status,
+        meeting_at: new Date(activeDraft.meeting_at).toISOString(),
+        duration_minutes: Number(activeDraft.duration_minutes) || 0,
+        duration_seconds: Math.max(0, Math.round(Number(activeDraft.duration_seconds) || 0)),
+        location: activeDraft.location,
+        // Student-facing meeting records never receive staff notes.
+        shared_notes: data.meetings.find((meeting) => meeting.id === activeDraft.id)?.shared_notes || "",
+        status: activeDraft.status,
       };
-      const query = meetingDraft.id
-        ? client.from("mentorship_meetings").update(payload).eq("id", meetingDraft.id).select().single()
+      const query = activeDraft.id
+        ? client.from("mentorship_meetings").update(payload).eq("id", activeDraft.id).select().single()
         : client.from("mentorship_meetings").insert(payload).select().single();
       const { data: savedMeeting, error: saveError } = await query;
       if (saveError) throw saveError;
-      const { error: clearError } = await client.from("mentorship_meeting_students").delete().eq("meeting_id", savedMeeting.id);
-      if (clearError) throw clearError;
-      const attendanceRows = meetingDraft.studentIds.map((studentId) => {
-        const { meeting_number: _meetingNumber, ...studentRecord } = meetingDraft.individual[studentId] || blankIndividual();
-        return { meeting_id: savedMeeting.id, student_id: studentId, ...studentRecord };
+      const attendanceRows = activeDraft.studentIds.map((studentId) => {
+        const studentRecord = activeDraft.individual[studentId] || blankIndividual();
+        return { meeting_id: savedMeeting.id, student_id: studentId, attendance: studentRecord.attendance, goal: studentRecord.goal, progress: studentRecord.progress, personal_notes: studentRecord.personal_notes };
       });
-      const { error: attendeeError } = await client.from("mentorship_meeting_students").insert(attendanceRows);
+      const { error: attendeeError } = await client.from("mentorship_meeting_students").upsert(attendanceRows, { onConflict: "meeting_id,student_id" });
       if (attendeeError) throw attendeeError;
+      const note = activeDraft.private_notes.trim();
+      if (note) {
+        const { error: noteError } = await client.from("mentorship_private_notes").upsert({
+          meeting_id: savedMeeting.id,
+          author_id: session.user.id,
+          content: note,
+        }, { onConflict: "meeting_id" });
+        if (noteError) throw noteError;
+      } else if (activeDraft.id) {
+        const { error: removeNoteError } = await client.from("mentorship_private_notes").delete().eq("meeting_id", activeDraft.id);
+        if (removeNoteError) throw removeNoteError;
+      }
+      const removedStudentIds = (data.meetings.find((meeting) => meeting.id === activeDraft.id)?.meeting_students || [])
+        .map((entry) => entry.student_id).filter((studentId) => !activeDraft.studentIds.includes(studentId));
+      if (removedStudentIds.length) {
+        const { error: removeError } = await client.from("mentorship_meeting_students").delete().eq("meeting_id", savedMeeting.id).in("student_id", removedStudentIds);
+        if (removeError) throw removeError;
+      }
       setMeetingDraft(null);
       setNotice("Meeting saved. You can reopen it any time to update the notes.");
       await load();
@@ -377,16 +412,101 @@ export default function MentorshipPortal() {
     setSaving(true);
     setError("");
     try {
+      const selectedSubject = String(form.get("subject") || "").trim();
+      const subject = selectedSubject === "__new" ? String(form.get("new_subject") || "").trim() : selectedSubject;
+      if (!subject) throw new Error("Choose an existing course or enter a new course name.");
+      const rawGrade = String(form.get("letter_grade") || "").trim();
+      const rawPercentage = String(form.get("percentage") || "").trim();
+      const numericGrade = rawPercentage ? Number(rawPercentage) : /^\d+(\.\d+)?$/.test(rawGrade) ? Number(rawGrade) : null;
+      if (numericGrade !== null && (numericGrade < 0 || numericGrade > 100)) throw new Error("Please enter a percentage between 0 and 100.");
+      const letterGrade = /^\d/.test(rawGrade) && numericGrade !== null
+        ? numericGrade >= 90 ? "A" : numericGrade >= 80 ? "B" : numericGrade >= 70 ? "C" : numericGrade >= 60 ? "D" : "F"
+        : rawGrade;
       const { error: saveError } = await getMentorshipClient().from("mentorship_grades").insert({
         student_id: selectedStudent.id,
-        subject: String(form.get("subject") || "").trim(),
-        letter_grade: String(form.get("letter_grade") || "").trim(),
-        percentage: form.get("percentage") ? Number(form.get("percentage")) : null,
+        subject,
+        letter_grade: letterGrade,
+        percentage: numericGrade,
         missing_assignments: Number(form.get("missing_assignments") || 0),
         reported_on: new Date().toISOString().slice(0, 10),
       });
       if (saveError) throw saveError;
       setNotice("Grade update saved.");
+      await load();
+    } catch (issue) {
+      setError(errorText(issue));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function createRecurringMeetings(event: FormEvent) {
+    event.preventDefault();
+    if (!data || !session) return;
+    const form = new FormData(event.currentTarget as HTMLFormElement);
+    const studentId = String(form.get("student_id") || "");
+    const firstMeeting = String(form.get("meeting_at") || "");
+    const count = Math.min(12, Math.max(1, Number(form.get("count") || 1)));
+    if (!studentId || !firstMeeting) {
+      setError("Choose a participant and first meeting date.");
+      return;
+    }
+    setSaving(true); setError("");
+    try {
+      const client = getMentorshipClient();
+      const firstDate = new Date(firstMeeting);
+      const recurrenceId = crypto.randomUUID();
+      const cohortId = data.assignments.find((assignment) => assignment.student_id === studentId && assignment.mentor_id === session.user.id)?.cohort_id || null;
+      const minutes = Number(form.get("duration_minutes") || 30);
+      const series = Array.from({ length: count }, (_, index) => {
+        const date = new Date(firstDate);
+        date.setDate(date.getDate() + index * 7);
+        return {
+          mentor_id: session.user.id,
+          cohort_id: cohortId,
+          meeting_at: date.toISOString(),
+          duration_minutes: minutes,
+          duration_seconds: 0,
+          location: String(form.get("location") || "virtual"),
+          shared_notes: "",
+          status: "scheduled",
+          recurrence_id: recurrenceId,
+          recurrence_label: "Weekly meeting",
+        };
+      });
+      const { data: savedMeetings, error: saveError } = await client.from("mentorship_meetings").insert(series).select("id");
+      if (saveError) throw saveError;
+      const attendanceRows = (savedMeetings || []).map((meeting) => ({
+        meeting_id: meeting.id,
+        student_id: studentId,
+        attendance: "rescheduled",
+        goal: "",
+        progress: "on_track",
+        personal_notes: "",
+      }));
+      const { error: attendeeError } = await client.from("mentorship_meeting_students").insert(attendanceRows);
+      if (attendeeError) throw attendeeError;
+      setShowRecurringMeeting(false);
+      setNotice(`${count} weekly meeting${count === 1 ? "" : "s"} scheduled.`);
+      await load();
+    } catch (issue) {
+      setError(errorText(issue));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function cancelMeeting(meeting: Meeting, entireSeries = false) {
+    if (!window.confirm(entireSeries ? "Cancel every upcoming meeting in this weekly series?" : "Cancel this meeting?")) return;
+    setSaving(true); setError("");
+    try {
+      const client = getMentorshipClient();
+      const query = entireSeries && meeting.recurrence_id
+        ? client.from("mentorship_meetings").update({ status: "cancelled" }).eq("recurrence_id", meeting.recurrence_id).eq("status", "scheduled")
+        : client.from("mentorship_meetings").update({ status: "cancelled" }).eq("id", meeting.id);
+      const { error: cancelError } = await query;
+      if (cancelError) throw cancelError;
+      setNotice(entireSeries ? "Upcoming meetings in that series were cancelled." : "Meeting cancelled.");
       await load();
     } catch (issue) {
       setError(errorText(issue));
@@ -414,6 +534,7 @@ export default function MentorshipPortal() {
       grades: data.grades.filter((grade) => mentorStudentIds.has(grade.student_id)),
       goals: data.goals.filter((goal) => mentorStudentIds.has(goal.student_id)),
       applications: [],
+      privateNotes: data.privateNotes.filter((note) => data.meetings.some((meeting) => meeting.id === note.meeting_id && meeting.mentor_id === data.profile.user_id)),
     }
     : data;
   const workspaceData = isAdministrationPortal ? data : mentorWorkspaceData;
@@ -460,8 +581,8 @@ export default function MentorshipPortal() {
         {error && <div className={styles.error} role="alert">{error}</div>}
         {notice && <div className={styles.notice} role="status">{notice}</div>}
         {view === "today" && <TodayView name={profileName} role={workspaceRole} students={workspaceData.students} meetings={workspaceData.meetings} goals={workspaceData.goals} onNewMeeting={() => openMeeting(undefined, workspaceData)} onOpenMeeting={(meeting) => openMeeting(meeting, workspaceData)} onStudents={() => changeView("students")} />}
-        {view === "meetings" && (meetingDraft ? <MeetingEditor data={workspaceData} draft={meetingDraft} setDraft={setMeetingDraft} saving={saving} onSave={saveMeeting} onClose={() => setMeetingDraft(null)} /> : <MeetingsView meetings={workspaceData.meetings} students={workspaceData.students} canManage={canManage} onNew={() => openMeeting(undefined, workspaceData)} onOpen={(meeting) => openMeeting(meeting, workspaceData)} />)}
-        {view === "students" && <StudentProfileView students={workspaceData.students} assignments={workspaceData.assignments} meetings={workspaceData.meetings} grades={workspaceData.grades} goals={workspaceData.goals} canManage={canManage} isAdmin={isAdmin} selected={selectedStudent} setSelected={setSelectedStudentId} onNew={() => setShowStudentForm(true)} onSaveGrade={saveGrade} saving={saving} />}
+        {view === "meetings" && (meetingDraft ? <MeetingWorkspace data={workspaceData} draft={meetingDraft} setDraft={setMeetingDraft} saving={saving} onSave={saveMeeting} onClose={() => setMeetingDraft(null)} /> : <MeetingsDashboard meetings={workspaceData.meetings} students={workspaceData.students} canManage={canManage} saving={saving} onNew={() => openMeeting(undefined, workspaceData)} onOpen={(meeting) => openMeeting(meeting, workspaceData)} onRecurring={() => setShowRecurringMeeting(true)} onCancel={(meeting, entireSeries) => void cancelMeeting(meeting, entireSeries)} />)}
+        {view === "students" && <StudentDashboard students={workspaceData.students} assignments={workspaceData.assignments} meetings={workspaceData.meetings} grades={workspaceData.grades} goals={workspaceData.goals} canManage={canManage} isAdmin={isAdmin} selected={selectedStudent} setSelected={setSelectedStudentId} onNew={() => setShowStudentForm(true)} onSaveGrade={saveGrade} saving={saving} />}
         {view === "curriculum" && <CurriculumView items={workspaceData.curriculum} role={workspaceRole} />}
         {view === "reports" && isAdministrationPortal && <ReportingView data={data} />}
         {view === "applications" && isAdministrationPortal && <ApplicationsView data={data} onRefresh={load} setError={setError} setNotice={setNotice} />}
@@ -469,6 +590,7 @@ export default function MentorshipPortal() {
       </main>
     </div>
     {showStudentForm && <Modal title="Add a student" onClose={() => setShowStudentForm(false)}><form className={styles.form} onSubmit={createStudent}><label>Student name<input required name="full_name" autoComplete="name" /></label><label>School<input required name="school" /></label><label>Grade<input required name="grade" placeholder="Example: 8th grade" /></label><label>Guardian name<input name="guardian_name" /></label><label>Guardian phone<input name="guardian_phone" type="tel" /></label><label>Guardian email<input name="guardian_email" type="email" /></label><button className={styles.primaryButton} disabled={saving}>{saving ? "Saving…" : "Add student"}</button></form></Modal>}
+    {showRecurringMeeting && <RecurringMeetingModal students={workspaceData.students} saving={saving} onClose={() => setShowRecurringMeeting(false)} onSubmit={createRecurringMeetings} />}
   </div>;
 }
 
@@ -542,7 +664,7 @@ function MeetingEditor({ data, draft, setDraft, saving, onSave, onClose }: { dat
   }
   const selectedStudents = data.students.filter((student) => draft.studentIds.includes(student.id));
   const curriculum = data.curriculum.length ? data.curriculum : fullCurriculum;
-  return <><section className={styles.editorHeading}><div><button className={styles.textButton} type="button" onClick={onClose}>← Back to meetings</button><p>MEETING</p><h1>{draft.id ? "Update meeting" : "Start a meeting"}</h1><span>Notes stay on the left. Each student’s next curriculum guide is open on the right—without locking the conversation into one track.</span></div></section><form className={styles.meetingLayout} onSubmit={onSave}><section className={styles.editor}><div className={styles.editorTop}><label>Date & time<input required type="datetime-local" value={draft.meeting_at} onChange={(event) => setDraft({ ...draft, meeting_at: event.target.value })} /></label><label>Length<select value={draft.duration_minutes} onChange={(event) => setDraft({ ...draft, duration_minutes: Number(event.target.value) })}><option value={30}>30 minutes</option><option value={45}>45 minutes</option><option value={60}>1 hour</option><option value={90}>1½ hours</option></select></label><label>Location<select value={draft.location} onChange={(event) => setDraft({ ...draft, location: event.target.value as MeetingDraft["location"] })}><option value="virtual">Virtual</option><option value="in_person">In person</option><option value="phone">Phone</option></select></label></div><fieldset className={styles.studentPicker}><legend>MEETING PARTICIPANTS</legend><span>Choose one student for a one-on-one meeting, or several for a group meeting. Every selected student keeps their own notes and next guide.</span><div className={styles.participantTable}>{data.students.filter((student) => student.active).map((student) => { const individual = draft.individual[student.id]; const nextGuide = individual?.meeting_number || meetingNumberForStudent(student.id, data.meetings); return <label key={student.id} className={draft.studentIds.includes(student.id) ? styles.participantSelected : undefined}><input type="checkbox" checked={draft.studentIds.includes(student.id)} onChange={() => toggleStudent(student.id)} /><span><strong>{student.full_name}</strong><small>{student.grade} · {student.school}</small></span><em>Guide {nextGuide}</em></label>; })}</div></fieldset><label className={styles.fullField}>Shared meeting notes<textarea value={draft.shared_notes} onChange={(event) => setDraft({ ...draft, shared_notes: event.target.value })} placeholder="What did you talk about, decide, or plan together?" /></label><div className={styles.individualRecords}><div className={styles.sectionTitle}><div><p>INDIVIDUAL FOLLOW-UP</p><h2>Each student’s record</h2></div></div>{selectedStudents.map((student) => { const individual = draft.individual[student.id] || blankIndividual(meetingNumberForStudent(student.id, data.meetings)); return <details key={student.id} open><summary><strong>{student.full_name}</strong><span>{student.grade} · {student.school} · Curriculum guide {individual.meeting_number}</span></summary><div className={styles.individualFields}><label>Attendance<select value={individual.attendance} onChange={(event) => updateIndividual(student.id, "attendance", event.target.value)}><option value="present">Present</option><option value="absent">Absent</option><option value="rescheduled">Rescheduled</option></select></label><label>Progress<select value={individual.progress} onChange={(event) => updateIndividual(student.id, "progress", event.target.value)}><option value="on_track">On track</option><option value="needs_support">Needs support</option><option value="complete">Goal complete</option></select></label><label>Private note<textarea value={individual.personal_notes} onChange={(event) => updateIndividual(student.id, "personal_notes", event.target.value)} placeholder="Notes only this student should carry forward." /></label><label>Next goal<input value={individual.goal} onChange={(event) => updateIndividual(student.id, "goal", event.target.value)} placeholder="A clear, student-created next step" /></label></div></details>; })}{!selectedStudents.length && <p className={styles.empty}>Choose a meeting participant above to begin.</p>}</div><div className={styles.saveRow}><label>Status<select value={draft.status} onChange={(event) => setDraft({ ...draft, status: event.target.value as MeetingDraft["status"] })}><option value="complete">Complete</option><option value="scheduled">Scheduled</option><option value="cancelled">Cancelled</option></select></label><button type="button" className={styles.secondaryButton} onClick={onClose}>Cancel</button><button className={styles.primaryButton} disabled={saving}>{saving ? "Saving…" : "Save meeting"}</button></div></section><aside className={styles.curriculumRail}><p>CURRICULUM AT A GLANCE</p><h2>Guide the conversation.</h2><span>The meeting stays flexible; these are the next guides for the students you selected.</span>{selectedStudents.map((student) => { const guideNumber = draft.individual[student.id]?.meeting_number || meetingNumberForStudent(student.id, data.meetings); const guides = curriculumForStudent(student, guideNumber, curriculum); return <section className={styles.curriculumStudent} key={student.id}><header><strong>{student.full_name}</strong><span>Meeting {guideNumber}</span></header>{guides.map((item) => <details key={`${student.id}-${item.id}`}><summary><strong>{item.track}</strong><span>{item.title}</span></summary><div><p><b>Start</b>{item.start_prompt}</p><p><b>Discussion questions</b>{item.discussion_questions.map((question) => `• ${question}`).join("\n")}</p><p><b>Activity</b>{item.activity}</p><p><b>Action item</b>{item.action_item}</p>{item.resources.length > 0 && <p><b>Resources</b>{item.resources.join(" · ")}</p>}</div></details>)}{!guides.length && <p className={styles.empty}>No published guide is set for this meeting number yet.</p>}</section>; })}{!selectedStudents.length && <p className={styles.empty}>Choose a student to see their next curriculum guides.</p>}</aside></form></>;
+  return <><section className={styles.editorHeading}><div><button className={styles.textButton} type="button" onClick={onClose}>← Back to meetings</button><p>MEETING</p><h1>{draft.id ? "Update meeting" : "Start a meeting"}</h1></div></section><form className={styles.meetingLayout} onSubmit={onSave}><section className={styles.editor}><div className={styles.editorTop}><label>Date & time<input required type="datetime-local" value={draft.meeting_at} onChange={(event) => setDraft({ ...draft, meeting_at: event.target.value })} /></label></div><label className={styles.fullField}>Private meeting notes<textarea value={draft.private_notes} onChange={(event) => setDraft({ ...draft, private_notes: event.target.value })} /></label></section><aside className={styles.curriculumRail}><p>CURRICULUM</p>{selectedStudents.map((student) => { const guideNumber = draft.individual[student.id]?.meeting_number || meetingNumberForStudent(student.id, data.meetings); const guides = curriculumForStudent(student, guideNumber, curriculum); return <section className={styles.curriculumStudent} key={student.id}><header><strong>{student.full_name}</strong><span>Meeting {guideNumber}</span></header>{guides.map((item) => <details key={`${student.id}-${item.id}`}><summary><strong>{item.track}</strong><span>{item.title}</span></summary><div><p>{item.start_prompt}</p></div></details>)}</section>; })}</aside></form></>;
 }
 
 function StudentProfileView({ students, assignments, meetings, grades, goals, canManage, isAdmin, selected, setSelected, onNew, onSaveGrade, saving }: { students: Student[]; assignments: Assignment[]; meetings: Meeting[]; grades: Grade[]; goals: Goal[]; canManage: boolean; isAdmin: boolean; selected: Student | null; setSelected: (id: string | null) => void; onNew: () => void; onSaveGrade: (event: FormEvent) => void; saving: boolean }) {

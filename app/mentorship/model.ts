@@ -55,12 +55,24 @@ export type Meeting = {
   cohort_id: string | null;
   meeting_at: string;
   duration_minutes: number;
+  duration_seconds?: number;
   location: "virtual" | "in_person" | "phone";
   shared_notes: string;
   status: "scheduled" | "complete" | "cancelled";
+  recurrence_id?: string | null;
+  recurrence_label?: string | null;
   created_at: string;
   updated_at: string;
   meeting_students?: MeetingStudent[];
+};
+
+export type PrivateMeetingNote = {
+  id: string;
+  meeting_id: string;
+  author_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Grade = {
@@ -123,6 +135,7 @@ export type WorkspaceData = {
   goals: Goal[];
   curriculum: CurriculumItem[];
   applications: MentorshipApplication[];
+  privateNotes: PrivateMeetingNote[];
 };
 
 export function displayDate(value: string) {
