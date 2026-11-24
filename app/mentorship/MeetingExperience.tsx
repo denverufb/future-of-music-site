@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { curriculumForStudent, displayDate, displayTime, meetingNumberForStudent, type CurriculumItem, type Meeting, type MeetingStudent, type Student, type WorkspaceData } from "./model";
 import styles from "./mentorship.module.css";
-import { parseGuideResource, splitGuideSteps } from "./curriculum-resources";
+import { linkedGuideResources, splitGuideSteps } from "./curriculum-resources";
 
 type Draft = { id?: string; meeting_at: string; duration_minutes: number; duration_seconds: number; location: "virtual" | "in_person" | "phone"; private_notes: string; status: "scheduled" | "complete" | "cancelled"; studentIds: string[]; individual: Record<string, Pick<MeetingStudent, "meeting_number" | "attendance" | "personal_notes" | "goal" | "progress">> };
 const prefix = "FOM-RICH-NOTES-V1:";
@@ -43,11 +43,12 @@ export function MeetingHome({ meetings, students, canManage, saving, onNew, onOp
 function Guide({ item }: { item: CurriculumItem }) {
   const [section, setSection] = useState<"start" | "discuss" | "activity" | "resources" | "followup">("start");
   const [question, setQuestion] = useState(0);
+  const links = linkedGuideResources(item.resources);
   const sections = [
     { id: "start", label: "Start", count: "" },
     { id: "discuss", label: "Discuss", count: String(item.discussion_questions.length) },
     { id: "activity", label: "Activity", count: "" },
-    { id: "resources", label: "Resources", count: String(item.resources.length) },
+    { id: "resources", label: "Resources", count: String(links.length) },
     { id: "followup", label: "Next steps", count: "" },
   ] as const;
   const activity = splitGuideSteps(item.activity);
@@ -57,7 +58,7 @@ function Guide({ item }: { item: CurriculumItem }) {
     {section === "start" && <section className={`${styles.guidePanel} ${styles.guideStart}`}><span className={styles.guideEyebrow}>GETTING STARTED</span><h3>Set up the conversation</h3><p>{item.start_prompt || "No opening notes for this guide."}</p><button type="button" onClick={() => setSection("discuss")}>Open discussion prompts</button></section>}
     {section === "discuss" && <section className={`${styles.guidePanel} ${styles.guideDiscuss}`}><span className={styles.guideEyebrow}>CONVERSATION PROMPTS</span><h3>Talk it through</h3>{item.discussion_questions.length ? <><div className={styles.questionCard}><span>QUESTION {question + 1} OF {item.discussion_questions.length}</span><p>{item.discussion_questions[question]}</p></div><div className={styles.questionControls}><button type="button" disabled={question === 0} onClick={() => setQuestion(question - 1)}>Previous</button><button type="button" disabled={question >= item.discussion_questions.length - 1} onClick={() => setQuestion(question + 1)}>Next question</button></div><details className={styles.allQuestions}><summary>See all questions</summary><ol>{item.discussion_questions.map((prompt, index) => <li key={index}>{prompt}</li>)}</ol></details></> : <p>No discussion questions listed.</p>}</section>}
     {section === "activity" && <section className={`${styles.guidePanel} ${styles.guideActivity}`}><span className={styles.guideEyebrow}>DO THIS TOGETHER</span><h3>Activity</h3>{activity.length ? <div className={styles.activitySteps}>{activity.map((step, index) => <div key={index}>{activity.length > 1 && <span>{index === 0 && item.activity.split("\n")[0]?.endsWith(":") ? "PLAN" : String(index + (item.activity.split("\n")[0]?.endsWith(":") ? 0 : 1)).padStart(2, "0")}</span>}<p>{step}</p></div>)}</div> : <p>No activity listed.</p>}</section>}
-    {section === "resources" && <section className={`${styles.guidePanel} ${styles.guideResources}`}><span className={styles.guideEyebrow}>TOOLS & MATERIALS</span><h3>Resources</h3>{item.resources.length ? <div className={styles.guideResourceList}>{item.resources.map((entry, index) => { const resource = parseGuideResource(entry); return resource.url ? <a key={index} href={resource.url} target="_blank" rel="noopener noreferrer"><span>{resource.label}</span><small>Open resource ↗</small></a> : <div key={index}><span>{resource.label}</span><small>Suggested material</small></div>; })}</div> : <p>No resources listed.</p>}</section>}
+    {section === "resources" && <section className={`${styles.guidePanel} ${styles.guideResources}`}><span className={styles.guideEyebrow}>HELPFUL LINKS</span><h3>Resources</h3>{links.length ? <div className={styles.guideResourceList}>{links.map((resource, index) => <a key={index} href={resource.url} target="_blank" rel="noopener noreferrer"><span>{resource.label}</span><small>Open resource ↗</small></a>)}</div> : <p>No resource links for this activity yet. See the Activity section for the steps.</p>}</section>}
     {section === "followup" && <section className={`${styles.guidePanel} ${styles.guideFollowup}`}><span className={styles.guideEyebrow}>AFTER YOUR MEETING</span><h3>Next steps</h3>{followup.length ? <div className={styles.followupSteps}>{followup.map((step, index) => <p key={index}>{step}</p>)}</div> : <p>No next steps listed.</p>}</section>}
   </div>;
 }

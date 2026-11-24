@@ -12,6 +12,11 @@ export function parseGuideResource(resource: string): GuideResource {
   return { label: title || (linkedText && !/^https?:\/\//i.test(linkedText) ? linkedText : "Open resource"), url };
 }
 
+/** Keep only resources that provide an actual web address. */
+export function linkedGuideResources(resources: string[]): { label: string; url: string }[] {
+  return resources.map(parseGuideResource).filter((resource): resource is { label: string; url: string } => resource.url !== null);
+}
+
 export function splitGuideSteps(value: string): string[] {
   const lines = value.split(/\n+/).map((line) => line.trim()).filter(Boolean);
   const steps = lines.map((line) => line.replace(/^(?:\d+[.)]|[-•])\s+/, ""));
